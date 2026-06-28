@@ -57,7 +57,7 @@ namespace instance {
 		DXGI_ADAPTER_DESC3 adapterDesc;
 		adapter->GetDesc3(&adapterDesc);
 		char adapterDescription[UCHAR_MAX];
-		wsprintfA(adapterDescription, "%ws", adapterDesc.Description);
+		wsprintf(adapterDescription, "%ws", adapterDesc.Description);
 
 		std::println("High performance adapter {} selected", adapterDescription);
 

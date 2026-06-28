@@ -7,8 +7,8 @@
 namespace window {
 	namespace {
 		const LPCSTR title = "Tracer12";
-		uint32_t width = 1280;
-		uint32_t height = 800;
+		uint32_t width = 800;
+		uint32_t height = 600;
 
 		HINSTANCE instance = nullptr;
 		HWND window = nullptr;
@@ -30,8 +30,7 @@ namespace window {
 	}
 
 	void createWindow() {
-		instance = GetModuleHandle(nullptr);
-		VERIFY(instance);
+		VERIFY_WIN(GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &instance));
 		std::println("Instance handle acquired");
 
 		WNDCLASSEX windowClass = {
@@ -49,11 +48,11 @@ namespace window {
 			.hIconSm = LoadIcon(nullptr, IDI_APPLICATION)
 		};
 
-		VERIFY(RegisterClassEx(&windowClass));
+		VERIFY_WIN(RegisterClassEx(&windowClass));
 		std::println("Window class registered");
 
 		window = CreateWindowEx(0, title, title, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, instance, nullptr);
-		VERIFY(window);
+		VERIFY_WIN(window);
 		std::println("Window created");
 
 		VERIFY_NOT(ShowWindow(window, SW_SHOWDEFAULT));
@@ -62,8 +61,14 @@ namespace window {
 		VERIFY(UpdateWindow(window));
 		std::println("Window updated");
 
+		RECT rect = {};
+		VERIFY_WIN(GetClientRect(window, &rect));
+		width = rect.right;
+		height = rect.bottom;
+		std::println("Window size: {}x{}", width, height);
+
 		event = CreateEvent(nullptr, false, false, nullptr);
-		VERIFY(event);
+		VERIFY_WIN(event);
 		std::println("Event created");
 	}
 
