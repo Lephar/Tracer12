@@ -83,13 +83,13 @@ namespace instance {
 		IID creatorID = {};
 
 		VERIFY_COM(device->CreateCommandQueue1(&commandQueueDesc, creatorID, IID_PPV_ARGS(commandQueue.GetAddressOf())));
-		std::println("Command queue created");
+		std::println("Direct command queue created");
 
 		VERIFY_COM(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
 		std::println("Debug command queue created from command queue");
 
 		VERIFY_COM(device->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
-		std::println("Command list created");
+		std::println("Direct command list created");
 
 		defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		std::println("Default heap properties set");
