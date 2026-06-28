@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdafx.h"
+#include "pch.h"
 
 inline void VERIFY(bool result) {
 	if (!result) {

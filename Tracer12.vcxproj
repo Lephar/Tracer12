@@ -43,7 +43,8 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdclatest</LanguageStandard_C>
       <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -54,7 +55,7 @@
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
     <PostBuildEvent>
-      <Command>XCOPY "$(ProjectDir)data\" "$(OutDir)data\" /S /Y</Command>
+      <Command>XCOPY "$(ProjectDir)data\" "$(OutDir)data\" /S /Y /D</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -69,11 +70,16 @@
     <ClCompile Include="src\helper.cpp" />
     <ClCompile Include="src\instance.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\helper.h" />
     <ClInclude Include="include\instance.h" />
-    <ClInclude Include="include\stdafx.h" />
+    <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\window.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />
