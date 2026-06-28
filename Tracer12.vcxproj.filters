@@ -19,8 +19,8 @@
     <None Include="packages.config" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
-    <None Include="README.md" />
     <None Include=".gitmodules" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

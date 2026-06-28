@@ -24,6 +24,7 @@
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
+#include <dxcapi.h>
 #include <DirectXMath.h>
 #include <DirectXMesh.h>
 #include <DirectXTex.h>
