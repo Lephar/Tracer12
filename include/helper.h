@@ -8,6 +8,12 @@ inline void VERIFY(bool result) {
 	}
 }
 
+inline void VERIFY_NOT(bool result) {
+	if (result) {
+		exit(EXIT_FAILURE);
+	}
+}
+
 inline void VERIFY_COM(HRESULT result) {
 	if (FAILED(result)) {
 		std::println("{}", _com_error(result).ErrorMessage());
