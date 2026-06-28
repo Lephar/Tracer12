@@ -1,0 +1,84 @@
+#include "pch.h"
+
+#include "window.h"
+
+#include "helper.h"
+
+namespace window {
+	namespace {
+		const LPCSTR title = "Tracer12";
+		uint32_t width = 1280;
+		uint32_t height = 800;
+
+		HINSTANCE instance = nullptr;
+		HWND window = nullptr;
+		HANDLE event = nullptr;
+
+		LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+			if (uMsg == WM_DESTROY) {
+				PostQuitMessage(EXIT_SUCCESS);
+				return EXIT_SUCCESS;
+			}
+			else if (WM_KEYDOWN) {
+				if (wParam == VK_ESCAPE) {
+					DestroyWindow(hWnd);
+				}
+			}
+
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+		}
+	}
+
+	void createWindow() {
+		instance = GetModuleHandle(nullptr);
+		VERIFY(instance);
+		std::println("Instance handle acquired");
+
+		WNDCLASSEX windowClass = {
+			.cbSize = sizeof(WNDCLASSEX),
+			.style = CS_HREDRAW | CS_VREDRAW,
+			.lpfnWndProc = WndProc,
+			.cbClsExtra = 0,
+			.cbWndExtra = 0,
+			.hInstance = instance,
+			.hIcon = LoadIcon(nullptr, IDI_APPLICATION),
+			.hCursor = LoadCursor(nullptr, IDC_ARROW),
+			.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW),
+			.lpszMenuName = nullptr,
+			.lpszClassName = title,
+			.hIconSm = LoadIcon(nullptr, IDI_APPLICATION)
+		};
+
+		VERIFY(RegisterClassEx(&windowClass));
+		std::println("Window class registered");
+
+		window = CreateWindowEx(0, title, title, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, instance, nullptr);
+		VERIFY(window);
+		std::println("Window created");
+
+		VERIFY_NOT(ShowWindow(window, SW_SHOWDEFAULT));
+		std::println("Window shown");
+
+		VERIFY(UpdateWindow(window));
+		std::println("Window updated");
+
+		event = CreateEvent(nullptr, false, false, nullptr);
+		VERIFY(event);
+		std::println("Event created");
+	}
+
+	bool poll() {
+		MSG message = {};
+
+		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
+			if (message.message == WM_QUIT) {
+				return false;
+			}
+
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
+
+		return true;
+	}
+}

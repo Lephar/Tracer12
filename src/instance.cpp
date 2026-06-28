@@ -98,9 +98,5 @@ namespace graphics::instance {
 
 		uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		std::println("Upload heap properties set");
-
-		fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		VERIFY(fenceEvent);
-		std::println("Fence event created");
 	}
 }
