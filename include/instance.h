@@ -2,6 +2,6 @@
 
 #include "pch.h"
 
-namespace graphics::instance {
+namespace instance {
 	void initialize();
 }

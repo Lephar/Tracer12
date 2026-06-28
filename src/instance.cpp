@@ -9,7 +9,7 @@ extern "C" {
 	__declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";
 }
 
-namespace graphics::instance {
+namespace instance {
 	namespace {
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;
@@ -26,11 +26,9 @@ namespace graphics::instance {
 		CD3DX12_HEAP_PROPERTIES defaultHeapProperties = {};
 		CD3DX12_HEAP_PROPERTIES uploadHeapProperties = {};
 
-		HANDLE fenceEvent = nullptr;
-
 		DWORD callbackCookie = 0;
 
-		void messageCallback(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, LPCSTR pDescription, void* pContext) {
+		void __stdcall CallbackFunc(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, LPCSTR pDescription, void* pContext) {
 			std::println("{}", pDescription);
 		}
 	}
@@ -72,7 +70,7 @@ namespace graphics::instance {
 		VERIFY_COM(device->QueryInterface(IID_PPV_ARGS(infoQueue.GetAddressOf())));
 		std::println("Info queue created from device");
 
-		VERIFY_COM(infoQueue->RegisterMessageCallback(messageCallback, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie));
+		VERIFY_COM(infoQueue->RegisterMessageCallback(CallbackFunc, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie));
 		std::println("Debug message callback registered");
 
 		D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {
