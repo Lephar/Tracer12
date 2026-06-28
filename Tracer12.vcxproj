@@ -66,9 +66,13 @@
     <None Include="Tracer12.slnx" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\helper.cpp" />
+    <ClCompile Include="src\instance.cpp" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\helper.h" />
+    <ClInclude Include="include\instance.h" />
     <ClInclude Include="include\stdafx.h" />
   </ItemGroup>
   <ItemGroup>
