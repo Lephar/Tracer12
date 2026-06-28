@@ -53,10 +53,14 @@
     <Manifest>
       <EnableSegmentHeap>true</EnableSegmentHeap>
     </Manifest>
+    <PostBuildEvent>
+      <Command>XCOPY "$(ProjectDir)data\" "$(OutDir)data\" /S /Y</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
+    <None Include=".gitmodules" />
     <None Include="packages.config" />
     <None Include="README.md" />
     <None Include="Tracer12.slnx" />

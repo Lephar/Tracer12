@@ -1,7 +1,7 @@
 <Solution>
   <Configurations>
+    <BuildType Name="Debug" />
     <Platform Name="x64" />
-    <Platform Name="x86" />
   </Configurations>
   <Project Path="Tracer12.vcxproj" Id="1b8d8bf5-941b-4ee7-867f-cbdd04920ae7" />
 </Solution>
