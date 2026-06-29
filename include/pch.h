@@ -28,3 +28,4 @@
 #include <DirectXMath.h>
 #include <DirectXMesh.h>
 #include <DirectXTex.h>
+#include <DescriptorHeap.h>

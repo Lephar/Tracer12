@@ -11,6 +11,10 @@ namespace instance {
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue();
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList();
 
+	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap();
+	std::shared_ptr<DirectX::DescriptorHeap> getRenderTargetDescriptorHeap();
+	std::shared_ptr<DirectX::DescriptorHeap> getConstantBufferDescriptorHeap();
+
 	CD3DX12_HEAP_PROPERTIES getDefaultHeapProperties();
 	CD3DX12_HEAP_PROPERTIES getUploadHeapProperties();
 }

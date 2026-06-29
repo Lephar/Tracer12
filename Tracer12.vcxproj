@@ -73,6 +73,7 @@
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\renderTarget.cpp" />
     <ClCompile Include="src\swapChain.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
@@ -80,6 +81,7 @@
     <ClInclude Include="include\helper.h" />
     <ClInclude Include="include\instance.h" />
     <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\renderTarget.h" />
     <ClInclude Include="include\swapChain.h" />
     <ClInclude Include="include\window.h" />
   </ItemGroup>
