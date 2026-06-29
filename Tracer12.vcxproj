@@ -73,12 +73,14 @@
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\swapChain.cpp" />
     <ClCompile Include="src\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\helper.h" />
     <ClInclude Include="include\instance.h" />
     <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\swapChain.h" />
     <ClInclude Include="include\window.h" />
   </ItemGroup>
   <ItemGroup>
