@@ -7,6 +7,7 @@
 namespace window {
 	namespace {
 		const LPCSTR title = "Tracer12";
+
 		uint32_t width = 800;
 		uint32_t height = 600;
 
@@ -70,6 +71,22 @@ namespace window {
 		event = CreateEvent(nullptr, false, false, nullptr);
 		VERIFY_WIN(event);
 		std::println("Event created");
+	}
+
+	uint32_t getWidth() {
+		return width;
+	}
+
+	uint32_t getHeight() {
+		return height;
+	}
+
+	HWND getWindow() {
+		return window;
+	}
+
+	HANDLE getEvent() {
+		return event;
 	}
 
 	bool poll() {

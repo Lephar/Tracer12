@@ -97,4 +97,28 @@ namespace instance {
 		uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		std::println("Upload heap properties set");
 	}
+
+	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory() {
+		return factory;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice() {
+		return device;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue() {
+		return commandQueue;
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList() {
+		return commandList;
+	}
+
+	CD3DX12_HEAP_PROPERTIES getDefaultHeapProperties() {
+		return defaultHeapProperties;
+	}
+
+	CD3DX12_HEAP_PROPERTIES getUploadHeapProperties() {
+		return uploadHeapProperties;
+	}
 }
