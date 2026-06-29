@@ -1,5 +1,11 @@
 #pragma once
 
+#ifdef _DEBUG
+constexpr bool debug = true;
+#else
+constexpr bool debug = false;
+#endif
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif

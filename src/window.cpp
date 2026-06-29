@@ -6,7 +6,7 @@
 
 namespace window {
 	namespace {
-		const LPCSTR title = "Tracer12";
+		constexpr LPCSTR title = "Tracer12";
 
 		uint32_t width = 800;
 		uint32_t height = 600;

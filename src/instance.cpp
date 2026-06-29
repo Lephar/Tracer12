@@ -11,8 +11,6 @@ extern "C" {
 
 namespace instance {
 	namespace {
-		const uint32_t imageCount = 3;
-
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;
 
@@ -27,6 +25,8 @@ namespace instance {
 		Microsoft::WRL::ComPtr<ID3D12DebugCommandQueue1> debugCommandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList = nullptr;
 
+		constexpr uint32_t imageCount = 3;
+		
 		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap = nullptr;
 		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap = nullptr;
 		std::shared_ptr<DirectX::DescriptorHeap> constantBufferDescriptorHeap = nullptr;
@@ -127,6 +127,10 @@ namespace instance {
 
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList() {
 		return commandList;
+	}
+
+	uint32_t getImageCount() {
+		return imageCount;
 	}
 
 	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap() {
