@@ -2,6 +2,9 @@
 
 #include "graphics.h"
 
+#include "memory.h"
+#include "swapChain.h"
+
 #include "helper.h"
 
 extern "C" {
@@ -19,20 +22,11 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12DebugDevice2> debugDevice = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12InfoQueue1> infoQueue = nullptr;
 
-		DWORD callbackCookie = 0;
-
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12DebugCommandQueue1> debugCommandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList = nullptr;
 
-		constexpr uint32_t imageCount = 3;
-		
-		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap = nullptr;
-		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap = nullptr;
-		std::shared_ptr<DirectX::DescriptorHeap> constantBufferDescriptorHeap = nullptr;
-
-		CD3DX12_HEAP_PROPERTIES defaultHeapProperties = {};
-		CD3DX12_HEAP_PROPERTIES uploadHeapProperties = {};
+		DWORD callbackCookie = 0;
 
 		void __stdcall CallbackFunc(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, LPCSTR pDescription, void* pContext) {
 			std::println("{}", pDescription);
@@ -97,20 +91,8 @@ namespace tracer::graphics {
 		VERIFY_COM(device->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
 		std::println("Direct command list created");
 
-		depthStencilDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
-		std::println("Depth stencil descriptor heap created");
-
-		renderTargetDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, imageCount);
-		std::println("Render target descriptor heap created");
-
-		constantBufferDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, imageCount);
-		std::println("Constant buffer descriptor heap created");
-
-		defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		std::println("Default heap properties set");
-
-		uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		std::println("Upload heap properties set");
+		tracer::graphics::memory::initialize();
+		tracer::graphics::swapChain::initialize();
 	}
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory() {
@@ -127,29 +109,5 @@ namespace tracer::graphics {
 
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList() {
 		return commandList;
-	}
-
-	uint32_t getImageCount() {
-		return imageCount;
-	}
-
-	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap() {
-		return depthStencilDescriptorHeap;
-	}
-
-	std::shared_ptr<DirectX::DescriptorHeap> getRenderTargetDescriptorHeap() {
-		return renderTargetDescriptorHeap;
-	}
-	
-	std::shared_ptr<DirectX::DescriptorHeap> getConstantBufferDescriptorHeap() {
-		return constantBufferDescriptorHeap;
-	}
-
-	CD3DX12_HEAP_PROPERTIES getDefaultHeapProperties() {
-		return defaultHeapProperties;
-	}
-
-	CD3DX12_HEAP_PROPERTIES getUploadHeapProperties() {
-		return uploadHeapProperties;
 	}
 }

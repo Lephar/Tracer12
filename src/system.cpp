@@ -6,7 +6,7 @@
 
 namespace tracer::system {
 	namespace {
-		constexpr LPCSTR title = "Tracer12";
+		const char* title = "Tracer";
 
 		uint32_t width = 800;
 		uint32_t height = 600;
@@ -15,7 +15,7 @@ namespace tracer::system {
 		HWND window = nullptr;
 		HANDLE event = nullptr;
 
-		std::filesystem::path dataFolder;
+		std::filesystem::path dataFolder = {};
 
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			if (uMsg == WM_DESTROY) {

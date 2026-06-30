@@ -41,10 +41,10 @@
     <ClCompile Include="src\swapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\content.cpp">
+    <ClCompile Include="src\memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\asset.cpp">
+    <ClCompile Include="src\swapChainImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -64,16 +64,16 @@
     <ClInclude Include="include\swapChain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\content.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="external\include\cgltf\cgltf.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\include\cgltf\cgltf_write.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\asset.h">
+    <ClInclude Include="include\memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\swapChainImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

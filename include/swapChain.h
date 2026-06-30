@@ -3,10 +3,13 @@
 #include "pch.h"
 
 namespace tracer::graphics::swapChain {
+	const uint32_t getImageCount();
+
+	const DXGI_FORMAT getDepthStencilFormat();
+	const DXGI_FORMAT getRenderTargetFormat();
+
 	void initialize();
 
-	DXGI_FORMAT getDepthStencilFormat();
-	DXGI_FORMAT getRenderTargetFormat();
-
+	void resize();
 	void destroy();
 }
