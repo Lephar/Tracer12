@@ -35,4 +35,17 @@ namespace tracer {
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	inline void VERIFY_SHADER(Microsoft::WRL::ComPtr<IDxcResult> result) {
+		HRESULT status = {};
+		VERIFY_COM(result->GetStatus(&status));
+
+		if (FAILED(status)) {
+			Microsoft::WRL::ComPtr<IDxcBlobEncoding> message = nullptr;
+			VERIFY_COM(result->GetErrorBuffer(message.GetAddressOf()));
+
+			std::println("{}", reinterpret_cast<const char*>(message->GetBufferPointer()));
+			exit(EXIT_FAILURE);
+		}
+	}
 }

@@ -74,6 +74,8 @@
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\pipeline.cpp" />
+    <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\swapChain.cpp" />
     <ClCompile Include="src\swapChainImage.cpp" />
     <ClCompile Include="src\system.cpp" />
@@ -85,6 +87,8 @@
     <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\memory.h" />
     <ClInclude Include="include\pch.h" />
+    <ClInclude Include="include\pipeline.h" />
+    <ClInclude Include="include\shader.h" />
     <ClInclude Include="include\swapChain.h" />
     <ClInclude Include="include\swapChainImage.h" />
     <ClInclude Include="include\system.h" />

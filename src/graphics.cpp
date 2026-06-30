@@ -4,6 +4,7 @@
 
 #include "memory.h"
 #include "swapChain.h"
+#include "pipeline.h"
 
 #include "helper.h"
 
@@ -14,6 +15,9 @@ extern "C" {
 
 namespace tracer::graphics {
 	namespace {
+		Microsoft::WRL::ComPtr<IDxcCompiler3> compiler = nullptr;
+		Microsoft::WRL::ComPtr<IDxcUtils> utils = nullptr;
+		
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;
 
@@ -27,6 +31,8 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList = nullptr;
 
 		DWORD callbackCookie = 0;
+
+		std::unique_ptr<Pipeline> pipeline = {};
 
 		void __stdcall CallbackFunc(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, LPCSTR pDescription, void* pContext) {
 			std::println("{}", pDescription);
@@ -48,6 +54,12 @@ namespace tracer::graphics {
 
 		debug->SetEnableAutoName(true);
 		std::println("Device objects auto naming enabled");
+
+		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
+		std::println("Shader compiler created");
+
+		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
+		std::println("Shader compiler utilities created");
 
 		VERIFY_COM(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
 		std::println("DXGI factory created with debug mode enabled");
@@ -91,8 +103,18 @@ namespace tracer::graphics {
 		VERIFY_COM(device->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
 		std::println("Direct command list created");
 
-		tracer::graphics::memory::initialize();
-		tracer::graphics::swapChain::initialize();
+		memory::initialize();
+		swapChain::initialize();
+
+		pipeline = std::make_unique<Pipeline>("vertex", "pixel");
+	}
+
+	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler() {
+		return compiler;
+	}
+
+	Microsoft::WRL::ComPtr<IDxcUtils> getCompilerUtils() {
+		return utils;
 	}
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory() {
