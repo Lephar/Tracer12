@@ -13,8 +13,8 @@ namespace tracer::graphics::memory {
 		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap = nullptr;
 		std::shared_ptr<DirectX::DescriptorHeap> constantBufferDescriptorHeap = nullptr;
 
-		CD3DX12_HEAP_PROPERTIES defaultHeapProperties = {};
-		CD3DX12_HEAP_PROPERTIES uploadHeapProperties = {};
+		D3D12_HEAP_PROPERTIES defaultHeapProperties = {};
+		D3D12_HEAP_PROPERTIES uploadHeapProperties = {};
 	}
 
 	void initialize() {
@@ -49,11 +49,11 @@ namespace tracer::graphics::memory {
 		return constantBufferDescriptorHeap;
 	}
 
-	CD3DX12_HEAP_PROPERTIES getDefaultHeapProperties() {
+	D3D12_HEAP_PROPERTIES getDefaultHeapProperties() {
 		return defaultHeapProperties;
 	}
 
-	CD3DX12_HEAP_PROPERTIES getUploadHeapProperties() {
+	D3D12_HEAP_PROPERTIES getUploadHeapProperties() {
 		return uploadHeapProperties;
 	}
 }

@@ -22,9 +22,6 @@ namespace tracer::graphics::swapChain {
 		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> depthStencilBuffer = nullptr;
 
-		CD3DX12_RESOURCE_BARRIER renderBarrier = {};
-		CD3DX12_RESOURCE_BARRIER presentBarrier = {};
-
 		std::vector<Image> images = {};
 
 		uint32_t imageIndex = UINT32_MAX;
