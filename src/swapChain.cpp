@@ -63,15 +63,15 @@ namespace tracer::graphics::swapChain {
 		};
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {
-		.Width = width,
-		.Height = height,
-		.Format = renderTargetFormat,
-		.SampleDesc = {
-			.Count = 1,
-		},
-		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-		.BufferCount = imageCount,
-		.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
+			.Width = width,
+			.Height = height,
+			.Format = renderTargetFormat,
+			.SampleDesc = {
+				.Count = 1,
+			},
+			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferCount = imageCount,
+			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 		};
 
 		DXGI_SWAP_CHAIN_FULLSCREEN_DESC fullscreenDesc = {
@@ -112,7 +112,7 @@ namespace tracer::graphics::swapChain {
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
 			std::println("Swap chain image {}:", imageIndex);
 
-			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer = nullptr;
+			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
 			VERIFY_COM(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
 			std::println("\tSwap chain buffer acquired");
 
@@ -120,11 +120,11 @@ namespace tracer::graphics::swapChain {
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			std::println("\tRender target view created");
 
-			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator = nullptr;
+			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 			VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
 			std::println("\tCommand allocator created");
 
-			Microsoft::WRL::ComPtr<ID3D12Fence1> fence = nullptr;
+			Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
 			VERIFY_COM(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
 			std::println("\tFence created");
 		

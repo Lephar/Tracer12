@@ -64,7 +64,7 @@ namespace tracer::system {
 		VERIFY(UpdateWindow(window));
 		std::println("Window updated");
 
-		RECT rect = {};
+		RECT rect;
 		VERIFY_WIN(GetClientRect(window, &rect));
 		width = rect.right;
 		height = rect.bottom;
@@ -99,7 +99,7 @@ namespace tracer::system {
 	}
 
 	bool poll() {
-		MSG message = {};
+		MSG message;
 
 		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
 			if (message.message == WM_QUIT) {

@@ -39,17 +39,17 @@ namespace tracer::graphics {
 			.Encoding = 0,
 		};
 
-		WCHAR wName[UCHAR_MAX] = {};
+		WCHAR wName[UCHAR_MAX];
 		VERIFY(swprintf_s(wName, UCHAR_MAX, L"%hs", name) != -1);
 
-		WCHAR wType[UCHAR_MAX] = {};
+		WCHAR wType[UCHAR_MAX];
 		VERIFY(swprintf_s(wType, UCHAR_MAX, L"%hs", type) != -1);
 
-		Microsoft::WRL::ComPtr<IDxcCompilerArgs> arguments = nullptr;
+		Microsoft::WRL::ComPtr<IDxcCompilerArgs> arguments;
 		VERIFY_COM(getCompilerUtils()->BuildArguments(wName, L"main", wType, nullptr, 0, nullptr, 0, arguments.GetAddressOf()));
 		std::println("\tArguments built");
 
-		Microsoft::WRL::ComPtr<IDxcResult> result = nullptr;
+		Microsoft::WRL::ComPtr<IDxcResult> result;
 		VERIFY_COM(getCompiler()->Compile(&text, arguments->GetArguments(), arguments->GetCount(), nullptr, IID_PPV_ARGS(result.GetAddressOf())));
 		std::println("\tShader compiled");
 

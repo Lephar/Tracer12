@@ -3,6 +3,7 @@
 #include "graphics.h"
 
 #include "memory.h"
+#include "content.h"
 #include "swapChain.h"
 #include "pipeline.h"
 
@@ -92,9 +93,7 @@ namespace tracer::graphics {
 			.NodeMask = 1,
 		};
 
-		IID creatorID = {};
-
-		VERIFY_COM(device->CreateCommandQueue1(&commandQueueDesc, creatorID, IID_PPV_ARGS(commandQueue.GetAddressOf())));
+		VERIFY_COM(device->CreateCommandQueue1(&commandQueueDesc, {}, IID_PPV_ARGS(commandQueue.GetAddressOf())));
 		std::println("Direct command queue created");
 
 		VERIFY_COM(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
@@ -104,8 +103,8 @@ namespace tracer::graphics {
 		std::println("Direct command list created");
 
 		memory::initialize();
+		content::load();
 		swapChain::initialize();
-
 		pipeline = std::make_unique<Pipeline>("vertex", "pixel");
 	}
 
