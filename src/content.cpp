@@ -178,18 +178,12 @@ namespace tracer::graphics::content {
 		std::println("Staging vertex buffer created on upload heap");
 
 		const auto swapChainImageCount = swapChain::getImageCount();
-		constantBufferAlignment = static_cast<uint32_t>(align(sizeof(constants), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
+		constantBufferAlignment = static_cast<uint32_t>(align(sizeof(Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 		const auto constantBufferSize = static_cast<uint32_t>(align(swapChainImageCount * constantBufferAlignment, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
 
 		auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
 		std::println("Constant buffer created");
-
-		D3D12_DESCRIPTOR_HEAP_DESC constantBufferDescriptorHeapDesc = {
-			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-			.NumDescriptors = swapChainImageCount,
-			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
-		};
 
 		CD3DX12_RANGE readRange(0, 0);
 		VERIFY_COM(constantBuffer->Map(0, &readRange, &constantBufferMemory));
