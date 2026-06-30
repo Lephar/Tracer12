@@ -67,10 +67,12 @@
     <None Include="Tracer12.slnx" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\helper.cpp" />
+    <ClCompile Include="src\content.cpp" />
+    <ClCompile Include="src\verify.cpp" />
     <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\memory.cpp" />
+    <ClCompile Include="src\numerics.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
@@ -83,9 +85,11 @@
   <ItemGroup>
     <ClInclude Include="external\include\cgltf\cgltf.h" />
     <ClInclude Include="external\include\cgltf\cgltf_write.h" />
-    <ClInclude Include="include\helper.h" />
+    <ClInclude Include="include\content.h" />
+    <ClInclude Include="include\verify.h" />
     <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\memory.h" />
+    <ClInclude Include="include\numerics.h" />
     <ClInclude Include="include\pch.h" />
     <ClInclude Include="include\pipeline.h" />
     <ClInclude Include="include\shader.h" />

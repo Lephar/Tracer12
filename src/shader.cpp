@@ -5,7 +5,7 @@
 #include "system.h"
 #include "graphics.h"
 
-#include "helper.h"
+#include "verify.h"
 
 namespace tracer::graphics {
 	struct Shader::Implementation {

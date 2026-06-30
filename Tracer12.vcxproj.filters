@@ -29,7 +29,7 @@
     <ClCompile Include="src\graphics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\helper.cpp">
+    <ClCompile Include="src\verify.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\system.cpp">
@@ -53,6 +53,12 @@
     <ClCompile Include="src\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\content.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\numerics.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pch.h">
@@ -61,7 +67,7 @@
     <ClInclude Include="include\graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\helper.h">
+    <ClInclude Include="include\verify.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\system.h">
@@ -86,6 +92,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\content.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\numerics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

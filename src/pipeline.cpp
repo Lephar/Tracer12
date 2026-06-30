@@ -7,7 +7,7 @@
 #include "graphics.h"
 #include "swapChain.h"
 
-#include "helper.h"
+#include "verify.h"
 
 namespace tracer::graphics {
 	struct Pipeline::Implementation {

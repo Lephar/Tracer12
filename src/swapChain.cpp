@@ -7,7 +7,7 @@
 #include "graphics.h"
 #include "memory.h"
 
-#include "helper.h"
+#include "verify.h"
 
 namespace tracer::graphics::swapChain {
 	namespace {

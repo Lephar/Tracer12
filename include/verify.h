@@ -2,6 +2,12 @@
 
 #include "pch.h"
 
+#ifdef _DEBUG
+constexpr bool DEBUG = true;
+#else
+constexpr bool DEBUG = false;
+#endif
+
 namespace tracer {
 	inline void VERIFY(bool result) {
 		if (!result) {
@@ -41,10 +47,11 @@ namespace tracer {
 		VERIFY_COM(result->GetStatus(&status));
 
 		if (FAILED(status)) {
-			Microsoft::WRL::ComPtr<IDxcBlobEncoding> message = nullptr;
-			VERIFY_COM(result->GetErrorBuffer(message.GetAddressOf()));
-
-			std::println("{}", reinterpret_cast<const char*>(message->GetBufferPointer()));
+			if (DEBUG) {
+				Microsoft::WRL::ComPtr<IDxcBlobEncoding> message = nullptr;
+				VERIFY_COM(result->GetErrorBuffer(message.GetAddressOf()));
+				std::println("{}", reinterpret_cast<const char*>(message->GetBufferPointer()));
+			}
 			exit(EXIT_FAILURE);
 		}
 	}

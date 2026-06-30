@@ -6,7 +6,7 @@
 #include "swapChain.h"
 #include "pipeline.h"
 
-#include "helper.h"
+#include "verify.h"
 
 extern "C" {
 	__declspec(dllexport) extern const uint32_t D3D12SDKVersion = 619;
