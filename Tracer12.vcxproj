@@ -67,25 +67,27 @@
     <None Include="Tracer12.slnx" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\asset.cpp" />
     <ClCompile Include="src\content.cpp" />
     <ClCompile Include="src\helper.cpp" />
-    <ClCompile Include="src\instance.cpp" />
+    <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\swapChain.cpp" />
-    <ClCompile Include="src\window.cpp" />
+    <ClCompile Include="src\system.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\include\cgltf\cgltf.h" />
     <ClInclude Include="external\include\cgltf\cgltf_write.h" />
+    <ClInclude Include="include\asset.h" />
     <ClInclude Include="include\content.h" />
     <ClInclude Include="include\helper.h" />
-    <ClInclude Include="include\instance.h" />
+    <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\pch.h" />
     <ClInclude Include="include\swapChain.h" />
-    <ClInclude Include="include\window.h" />
+    <ClInclude Include="include\system.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE.txt" />

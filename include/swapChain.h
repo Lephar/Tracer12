@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace swapChain {
+namespace tracer::graphics::swapChain {
 	void initialize();
 
 	DXGI_FORMAT getDepthStencilFormat();

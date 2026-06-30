@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "instance.h"
+#include "graphics.h"
 
 #include "helper.h"
 
@@ -9,7 +9,7 @@ extern "C" {
 	__declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";
 }
 
-namespace instance {
+namespace tracer::graphics {
 	namespace {
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;

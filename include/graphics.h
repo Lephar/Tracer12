@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace instance {
+namespace tracer::graphics {
 	void initialize();
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory();

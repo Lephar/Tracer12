@@ -1,10 +1,10 @@
 #include "pch.h"
 
-#include "window.h"
+#include "system.h"
 
 #include "helper.h"
 
-namespace window {
+namespace tracer::system {
 	namespace {
 		constexpr LPCSTR title = "Tracer12";
 
@@ -14,6 +14,8 @@ namespace window {
 		HINSTANCE instance = nullptr;
 		HWND window = nullptr;
 		HANDLE event = nullptr;
+
+		std::filesystem::path dataFolder;
 
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			if (uMsg == WM_DESTROY) {
@@ -30,7 +32,7 @@ namespace window {
 		}
 	}
 
-	void createWindow() {
+	void initialize() {
 		VERIFY_WIN(GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &instance));
 		std::println("Instance handle acquired");
 
@@ -71,6 +73,9 @@ namespace window {
 		event = CreateEvent(nullptr, false, false, nullptr);
 		VERIFY_WIN(event);
 		std::println("Event created");
+
+		dataFolder = std::filesystem::current_path() / "data";
+		std::println("Data folder set");
 	}
 
 	uint32_t getWidth() {
@@ -87,6 +92,10 @@ namespace window {
 
 	HANDLE getEvent() {
 		return event;
+	}
+
+	std::filesystem::path getDataFolder() {
+		return dataFolder;
 	}
 
 	bool poll() {

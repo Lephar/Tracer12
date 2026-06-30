@@ -2,12 +2,12 @@
 
 #include "swapChain.h"
 
-#include "window.h"
-#include "instance.h"
+#include "system.h"
+#include "graphics.h"
 
 #include "helper.h"
 
-namespace swapChain {
+namespace tracer::graphics::swapChain {
 	namespace {
 		const DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 		const DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -22,9 +22,9 @@ namespace swapChain {
 	}
 
 	void initialize() {
-		const auto width = window::getWidth();
-		const auto height = window::getHeight();
-		const auto imageCount = instance::getImageCount();
+		const auto width = system::getWidth();
+		const auto height = system::getHeight();
+		const auto imageCount = graphics::getImageCount();
 
 		viewport = {
 			.TopLeftX = 0,
@@ -58,10 +58,10 @@ namespace swapChain {
 			.Windowed = true,
 		};
 
-		VERIFY_COM(instance::getFactory()->CreateSwapChainForHwnd(instance::getCommandQueue().Get(), window::getWindow(), &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
+		VERIFY_COM(graphics::getFactory()->CreateSwapChainForHwnd(graphics::getCommandQueue().Get(), system::getWindow(), &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
 		std::println("Swap chain created");
 
-		auto device = instance::getDevice();
+		auto device = graphics::getDevice();
 
 		auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
@@ -73,7 +73,7 @@ namespace swapChain {
 			},
 		};
 
-		auto defaultHeapProperties = instance::getDefaultHeapProperties();
+		auto defaultHeapProperties = graphics::getDefaultHeapProperties();
 
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
 		std::println("Depth stencil buffer created on default heap");
@@ -84,7 +84,7 @@ namespace swapChain {
 			.Flags = D3D12_DSV_FLAG_NONE,
 		};
 
-		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, instance::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
+		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, graphics::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
 		std::println("Depth stencil view created");
 
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
@@ -92,7 +92,7 @@ namespace swapChain {
 			VERIFY_COM(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
 			std::println("Swap chain image buffer {} acquired", imageIndex);
 
-			auto renderTargetView = instance::getRenderTargetDescriptorHeap()->GetCpuHandle(imageIndex);
+			auto renderTargetView = graphics::getRenderTargetDescriptorHeap()->GetCpuHandle(imageIndex);
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			std::println("Render target view created for swap chain image {}", imageIndex);
 		}
