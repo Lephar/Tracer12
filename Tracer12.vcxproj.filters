@@ -41,6 +41,9 @@
     <ClCompile Include="src\swapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\content.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pch.h">
@@ -56,6 +59,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\swapChain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\content.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="external\include\cgltf\cgltf.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="external\include\cgltf\cgltf_write.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

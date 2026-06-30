@@ -31,7 +31,10 @@ constexpr bool DEBUG = false;
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
 #include <dxcapi.h>
-#include <DirectXMath.h>
-#include <DirectXMesh.h>
-#include <DirectXTex.h>
 #include <DescriptorHeap.h>
+#include <ResourceUploadBatch.h>
+#include <GeometricPrimitive.h>
+#include <SimpleMath.h>
+
+// 3rd Party
+#include "cgltf/cgltf.h"
