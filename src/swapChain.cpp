@@ -78,10 +78,10 @@ namespace tracer::graphics::swapChain {
 			.Windowed = true,
 		};
 
-		VERIFY_COM(graphics::getFactory()->CreateSwapChainForHwnd(graphics::getCommandQueue().Get(), system::getWindow(), &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
+		VERIFY_COM(getFactory()->CreateSwapChainForHwnd(getCommandQueue().Get(), system::getWindow(), &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
 		std::println("Swap chain created with {} images", imageCount);
 
-		auto device = graphics::getDevice();
+		auto device = getDevice();
 
 		auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
@@ -93,7 +93,7 @@ namespace tracer::graphics::swapChain {
 			},
 		};
 
-		auto defaultHeapProperties = graphics::memory::getDefaultHeapProperties();
+		auto defaultHeapProperties = memory::getDefaultHeapProperties();
 
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
 		std::println("Depth stencil buffer created on default heap");
@@ -104,7 +104,7 @@ namespace tracer::graphics::swapChain {
 			.Flags = D3D12_DSV_FLAG_NONE,
 		};
 
-		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, graphics::memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
+		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
 		std::println("Depth stencil view created");
 
 		images.reserve(imageCount);
@@ -116,7 +116,7 @@ namespace tracer::graphics::swapChain {
 			VERIFY_COM(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
 			std::println("\tSwap chain buffer acquired");
 
-			auto renderTargetView = graphics::memory::getRenderTargetDescriptorHeap()->GetCpuHandle(imageIndex);
+			auto renderTargetView = memory::getRenderTargetDescriptorHeap()->GetCpuHandle(imageIndex);
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			std::println("\tRender target view created");
 
@@ -133,7 +133,6 @@ namespace tracer::graphics::swapChain {
 	}
 	
 	void resize() {
-
 	}
 	
 	void destroy() {

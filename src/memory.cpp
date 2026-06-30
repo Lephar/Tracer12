@@ -18,7 +18,7 @@ namespace tracer::graphics::memory {
 	}
 
 	void initialize() {
-		auto device = graphics::getDevice();
+		auto device = getDevice();
 		const auto imageCount = swapChain::getImageCount();
 		
 		depthStencilDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
