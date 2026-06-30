@@ -89,7 +89,7 @@ namespace tracer::graphics {
 			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
 			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
 			.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
-			.NodeMask = 0,
+			.NodeMask = 1,
 		};
 
 		IID creatorID = {};
@@ -100,7 +100,7 @@ namespace tracer::graphics {
 		VERIFY_COM(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
 		std::println("Debug command queue created from command queue");
 
-		VERIFY_COM(device->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
+		VERIFY_COM(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
 		std::println("Direct command list created");
 
 		memory::initialize();

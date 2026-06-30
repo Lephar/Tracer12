@@ -51,7 +51,7 @@ namespace tracer::graphics {
 		std::println("Versioned root signature serialized");
 
 		auto device = getDevice();
-		VERIFY_COM(device->CreateRootSignature(0, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
+		VERIFY_COM(device->CreateRootSignature(1, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
 		std::println("Root signature created");
 
 		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, "vs_6_9");
@@ -85,7 +85,7 @@ namespace tracer::graphics {
 			.VS = implementation->vertexShader->getByteCode(),
 			.PS = implementation->pixelShader->getByteCode(),
 			.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
-			.SampleMask = 0xffffffff,
+			.SampleMask = UINT_MAX,
 			.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT),
 			.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT),
 			.InputLayout = {
