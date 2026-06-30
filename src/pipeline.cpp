@@ -54,8 +54,8 @@ namespace tracer::graphics {
 		VERIFY_COM(device->CreateRootSignature(0, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
 		std::println("Root signature created");
 
-		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, "vs_6_8");
-		implementation->pixelShader = std::make_unique<Shader>(pixelShaderName, "ps_6_8");
+		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, "vs_6_9");
+		implementation->pixelShader = std::make_unique<Shader>(pixelShaderName, "ps_6_9");
 
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{

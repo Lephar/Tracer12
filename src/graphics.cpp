@@ -59,7 +59,7 @@ namespace tracer::graphics {
 		std::println("Shader compiler created");
 
 		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
-		std::println("Shader compiler utilities created");
+		std::println("Shader compilation utilities created");
 
 		VERIFY_COM(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
 		std::println("DXGI factory created with debug mode enabled");
