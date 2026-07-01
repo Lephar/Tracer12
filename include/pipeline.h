@@ -17,6 +17,8 @@ namespace tracer::graphics {
 		Pipeline(Pipeline&& pipeline) = delete;
 		Pipeline& operator=(Pipeline&& pipeline) = delete;
 
+		void bind();
+
 		~Pipeline();
 	};
 }

@@ -4,6 +4,8 @@
 
 #include "system.h"
 #include "graphics.h"
+#include "memory.h"
+#include "content.h"
 
 #include "verify.h"
 
@@ -58,6 +60,45 @@ namespace tracer::graphics::swapChain {
 			VERIFY_COM(implementation->fence->SetEventOnCompletion(implementation->fenceValue, event));
 			VERIFY_COM(WaitForSingleObject(event, INFINITE));
 		}
+	}
+
+	void Image::begin() {
+		auto commandList = getCommandList();
+		auto& constants = content::getConstants();
+
+		memcpy(implementation->constantBufferMemory, &constants, sizeof(constants));
+
+		VERIFY_COM(implementation->commandAllocator->Reset());
+		VERIFY_COM(commandList->Reset(implementation->commandAllocator.Get(), nullptr));
+
+		commandList->ResourceBarrier(1, &implementation->renderBarrier);
+	}
+
+	void Image::bind(D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView) {
+		auto commandList = getCommandList();
+		auto constantBufferDescriptorHeap = memory::getConstantBufferDescriptorHeap()->Heap();
+
+		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		commandList->SetDescriptorHeaps(1, &constantBufferDescriptorHeap);
+		commandList->SetGraphicsRootDescriptorTable(0, implementation->constantBufferDeviceView);
+		commandList->OMSetRenderTargets(1, &implementation->renderTargetView, false, &depthStencilView);
+		commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		commandList->ClearRenderTargetView(implementation->renderTargetView, clearColor, 0, nullptr);
+	}
+	
+	void Image::end() {
+		auto commandList = getCommandList();
+
+		commandList->ResourceBarrier(1, &implementation->presentBarrier);
+
+		VERIFY_COM(commandList->Close());
+	}
+
+	void Image::signal() {
+		implementation->fenceValue++;
+
+		VERIFY_COM(getCommandQueue()->Signal(implementation->fence.Get(), implementation->fenceValue));
 	}
 
 	Image::~Image() = default;

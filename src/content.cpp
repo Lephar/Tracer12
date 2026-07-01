@@ -120,8 +120,8 @@ namespace tracer::graphics::content {
 
 		Constant constants = {};
 
-		DirectX::XMFLOAT4 position = { 0.0f, 0.0f, -4.0f, 1.0f };
-		DirectX::XMFLOAT4 forward = { 0.0f, 0.0f, 1.0f, 0.0f };
+		DirectX::XMFLOAT4 position = { -2.0f, 2.0f, -4.0f, 1.0f };
+		DirectX::XMFLOAT4 forward = { 0.5f, -0.5f, 1.0f, 0.0f };
 		const DirectX::XMFLOAT4 up = { 0.0f, 1.0f, 0.0f, 0.0f };
 
 		float fieldOfView = 0.0f;
@@ -250,6 +250,17 @@ namespace tracer::graphics::content {
 
 		std::println("Vertex buffer view set");
 
+		DirectX::XMVECTOR positionVector = DirectX::XMLoadFloat4(&position);
+		DirectX::XMVECTOR forwardVector = DirectX::XMLoadFloat4(&forward);
+		const DirectX::XMVECTOR upVector = DirectX::XMLoadFloat4(&up);
+
+		const DirectX::XMVECTOR targetVector = DirectX::XMVectorAdd(positionVector, forwardVector);
+		const DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(positionVector, targetVector, upVector);
+
+		DirectX::XMStoreFloat4x4(&constants.view, view);
+
+		std::println("View matrix generated using position and direction");
+
 		fieldOfView = radians(60.0f);
 		aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
 
@@ -273,5 +284,14 @@ namespace tracer::graphics::content {
 
 	void* getConstantBufferMemory() {
 		return constantBufferMemory;
+	}
+
+	void draw() {
+		auto commandList = getCommandList();
+		const uint32_t indexCount = indexBufferView.SizeInBytes / sizeof(Index);
+
+		commandList->IASetIndexBuffer(&indexBufferView);
+		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+		commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
 	}
 }

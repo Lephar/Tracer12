@@ -22,6 +22,7 @@ namespace tracer::graphics::swapChain {
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> depthStencilBuffer = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = {};
 
 		std::vector<Image> images = {};
 
@@ -102,7 +103,8 @@ namespace tracer::graphics::swapChain {
 			.Flags = D3D12_DSV_FLAG_NONE,
 		};
 
-		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
+		depthStencilView = memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle();
+		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, depthStencilView);
 		std::println("Depth stencil view created");
 
 		auto constantBufferDescriptorHeap = memory::getConstantBufferDescriptorHeap();
@@ -139,6 +141,43 @@ namespace tracer::graphics::swapChain {
 			std::println("\tConstant buffer memory set with offset");
 		
 			images.emplace_back(renderTargetBuffer, renderTargetView, constantBufferHostView, constantBufferDeviceView, constantBufferMemory);
+		}
+	}
+
+	void begin() {
+		imageIndex = swapChain->GetCurrentBackBufferIndex();
+		auto& image = images.at(imageIndex);
+
+		image.wait();
+		image.begin();
+	}
+
+	void bind() {
+		auto commandList = getCommandList();
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &scissor);
+
+		images.at(imageIndex).bind(depthStencilView);
+	}
+
+	void end() {
+		images.at(imageIndex).end();
+	}
+
+	void present() {
+		images.at(imageIndex).signal();
+
+		DXGI_PRESENT_PARAMETERS presentParameters = {};
+		VERIFY_COM(swapChain->Present1(0, 0, &presentParameters));
+	}
+
+	void destroy() {
+		for (auto& image : images) {
+			image.signal();
+		}
+		for (auto& image : images) {
+			image.wait();
 		}
 	}
 }

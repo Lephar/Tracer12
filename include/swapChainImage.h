@@ -15,6 +15,10 @@ namespace tracer::graphics::swapChain {
 		Image& operator=(Image&& image) noexcept;
 
 		void wait();
+		void begin();
+		void bind(D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
+		void end();
+		void signal();
 
 		~Image();
 	};

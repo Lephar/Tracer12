@@ -107,5 +107,13 @@ namespace tracer::graphics {
 		std::println("Graphics pipeline state object created");
 	}
 
+	void Pipeline::bind() {
+		auto commandList = getCommandList();
+
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		commandList->SetGraphicsRootSignature(implementation->rootSignature.Get());
+		commandList->SetPipelineState(implementation->pipelineStateObject.Get());
+	}
+
 	Pipeline::~Pipeline() = default;
 }

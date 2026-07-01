@@ -119,4 +119,8 @@ namespace tracer::graphics {
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList() {
 		return commandList;
 	}
+
+	void execute() {
+		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
+	}
 }
