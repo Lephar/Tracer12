@@ -6,6 +6,7 @@
 #include "system.h"
 #include "graphics.h"
 #include "memory.h"
+#include "content.h"
 
 #include "verify.h"
 
@@ -104,6 +105,9 @@ namespace tracer::graphics::swapChain {
 		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle());
 		std::println("Depth stencil view created");
 
+		auto constantBufferDescriptorHeap = memory::getConstantBufferDescriptorHeap();
+		const auto constantBufferAlignment = content::getConstantBufferAlignment();
+
 		images.reserve(imageCount);
 
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
@@ -117,6 +121,23 @@ namespace tracer::graphics::swapChain {
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			std::println("\tRender target view created");
 
+			const auto constantBufferOffset = imageIndex * constantBufferAlignment;
+
+			D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferViewDesc = {
+				.BufferLocation = content::getConstantBuffer()->GetGPUVirtualAddress() + constantBufferOffset,
+				.SizeInBytes = constantBufferAlignment,
+			};
+
+			auto constantBufferHostView = constantBufferDescriptorHeap->GetCpuHandle(imageIndex);
+			device->CreateConstantBufferView(&constantBufferViewDesc, constantBufferHostView);
+			std::println("\tConstant buffer view created");
+
+			auto constantBufferDeviceView = constantBufferDescriptorHeap->GetGpuHandle(imageIndex);
+			std::println("\tConstant buffer device descriptor handle acquired");
+
+			auto constantBufferMemory = reinterpret_cast<uint8_t*>(content::getConstantBufferMemory()) + constantBufferOffset;
+			std::println("\tConstant buffer memory set with offset");
+
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 			VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
 			std::println("\tCommand allocator created");
@@ -125,7 +146,7 @@ namespace tracer::graphics::swapChain {
 			VERIFY_COM(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
 			std::println("\tFence created");
 		
-			images.emplace_back(renderTargetBuffer, renderTargetView, commandAllocator, fence);
+			images.emplace_back(renderTargetBuffer, renderTargetView, constantBufferHostView, constantBufferDeviceView, constantBufferMemory, commandAllocator, fence);
 		}
 	}
 }

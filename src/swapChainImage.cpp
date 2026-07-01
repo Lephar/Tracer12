@@ -6,6 +6,9 @@ namespace tracer::graphics::swapChain {
 	struct Image::Implementation {
 		Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer;
 		D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
+		D3D12_CPU_DESCRIPTOR_HANDLE constantBufferHostView;
+		D3D12_GPU_DESCRIPTOR_HANDLE constantBufferDeviceView;
+		uint8_t* constantBufferMemory;
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 		uint64_t fenceValue;
 		Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
@@ -13,13 +16,16 @@ namespace tracer::graphics::swapChain {
 		D3D12_RESOURCE_BARRIER presentBarrier;
 	};
 
-	Image::Image(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator, Microsoft::WRL::ComPtr<ID3D12Fence1> fence) : implementation(std::make_unique<Implementation>()) {
+	Image::Image(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, D3D12_CPU_DESCRIPTOR_HANDLE constantBufferHostView, D3D12_GPU_DESCRIPTOR_HANDLE constantBufferDeviceView, uint8_t* constantBufferMemory, Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator, Microsoft::WRL::ComPtr<ID3D12Fence1> fence) : implementation(std::make_unique<Implementation>()) {
 		implementation->swapChainBuffer = swapChainBuffer;
 		implementation->renderTargetView = renderTargetView;
+		implementation->constantBufferHostView = constantBufferHostView;
+		implementation->constantBufferDeviceView = constantBufferDeviceView;
+		implementation->constantBufferMemory = constantBufferMemory;
 		implementation->commandAllocator = commandAllocator;
 		implementation->fenceValue = 0;
 		implementation->fence = fence;
-
+		
 		implementation->renderBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->swapChainBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		std::println("\tRender barrier set");
 
