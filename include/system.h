@@ -14,4 +14,8 @@ namespace tracer::system {
 	std::filesystem::path getDataFolder();
 
 	bool poll();
+
+	float getTimeDelta();
+	DirectX::Mouse::State getMouseState();
+	DirectX::Keyboard::State getKeyboardState();
 }

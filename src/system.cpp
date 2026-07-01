@@ -17,15 +17,57 @@ namespace tracer::system {
 
 		std::filesystem::path dataFolder = {};
 
+		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};
+		std::chrono::duration<float> timeDelta = {};
+
+		DirectX::Mouse mouse = {};
+		DirectX::Keyboard keyboard = {};
+		DirectX::Mouse::State mouseState = {};
+		DirectX::Keyboard::State keyboardState = {};
+		DirectX::Mouse::ButtonStateTracker mouseStateTracker = {};
+		DirectX::Keyboard::KeyboardStateTracker keyboardStateTracker = {};
+
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			if (uMsg == WM_DESTROY) {
 				PostQuitMessage(EXIT_SUCCESS);
 				return EXIT_SUCCESS;
 			}
-			else if (WM_KEYDOWN) {
+			else if (uMsg == WM_ACTIVATEAPP) {
+				DirectX::Mouse::ProcessMessage(uMsg, wParam, lParam);
+				DirectX::Keyboard::ProcessMessage(uMsg, wParam, lParam);
+			}
+			else if (uMsg == WM_MOUSEACTIVATE) {
+				return MA_ACTIVATEANDEAT;
+			}
+			else if (uMsg == WM_KEYDOWN) {
 				if (wParam == VK_ESCAPE) {
 					DestroyWindow(hWnd);
 				}
+				else {
+					DirectX::Keyboard::ProcessMessage(uMsg, wParam, lParam);
+				}
+			}
+			else if (uMsg == WM_SYSKEYDOWN
+				|| uMsg == WM_SYSKEYUP
+				|| uMsg == WM_KEYUP
+			) {
+				DirectX::Keyboard::ProcessMessage(uMsg, wParam, lParam);
+			}
+			else if (uMsg == WM_ACTIVATE
+				|| uMsg == WM_INPUT
+				|| uMsg == WM_MOUSEMOVE
+				|| uMsg == WM_LBUTTONDOWN
+				|| uMsg == WM_LBUTTONUP
+				|| uMsg == WM_RBUTTONDOWN
+				|| uMsg == WM_RBUTTONUP
+				|| uMsg == WM_MBUTTONDOWN
+				|| uMsg == WM_MBUTTONUP
+				|| uMsg == WM_MOUSEWHEEL
+				|| uMsg == WM_XBUTTONDOWN
+				|| uMsg == WM_XBUTTONUP
+				|| uMsg == WM_MOUSEHOVER
+			) {
+				DirectX::Mouse::ProcessMessage(uMsg, wParam, lParam);
 			}
 
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -58,11 +100,21 @@ namespace tracer::system {
 		VERIFY_WIN(window);
 		std::println("Window created");
 
+		mouse.SetWindow(window);
+		std::println("Mouse window set");
+
+		mouse.SetMode(DirectX::Mouse::Mode::MODE_RELATIVE);
+		std::println("Mouse mode set to relative");
+
 		VERIFY_NOT(ShowWindow(window, SW_SHOWDEFAULT));
 		std::println("Window shown");
 
 		VERIFY(UpdateWindow(window));
 		std::println("Window updated");
+
+		mouseStateTracker.Reset();
+		keyboardStateTracker.Reset();
+		std::println("Mouse and keyboard state reset");
 
 		RECT rect;
 		VERIFY_WIN(GetClientRect(window, &rect));
@@ -76,6 +128,9 @@ namespace tracer::system {
 
 		dataFolder = std::filesystem::current_path() / "data";
 		std::println("Data folder set");
+
+		timeCurrent = std::chrono::high_resolution_clock::now();
+		std::println("Current time saved");
 	}
 
 	uint32_t getWidth() {
@@ -110,6 +165,28 @@ namespace tracer::system {
 			DispatchMessage(&message);
 		}
 
+		auto timePrevious = timeCurrent;
+		timeCurrent = std::chrono::high_resolution_clock::now();
+		timeDelta = timeCurrent - timePrevious;
+
+		mouseState = mouse.GetState();
+		keyboardState = keyboard.GetState();
+
+		mouseStateTracker.Update(mouseState);
+		keyboardStateTracker.Update(keyboardState);
+
 		return true;
+	}
+
+	float getTimeDelta() {
+		return timeDelta.count();
+	}
+
+	DirectX::Mouse::State getMouseState() {
+		return mouseState;
+	}
+
+	DirectX::Keyboard::State getKeyboardState() {
+		return keyboardState;
 	}
 }
