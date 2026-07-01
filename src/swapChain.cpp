@@ -87,7 +87,7 @@ namespace tracer::graphics::swapChain {
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
 			.Format = depthStencilFormat,
 			.DepthStencil = {
-				.Depth = 1.0f,
+				.Depth = 0.0f,
 				.Stencil = 0,
 			},
 		};

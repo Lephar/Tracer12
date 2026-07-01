@@ -251,7 +251,7 @@ namespace tracer::graphics::content {
 		std::println("Vertex buffer view set");
 
 		aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
-		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlane, farPlane);;
+		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, farPlane, nearPlane);
 
 		std::println("Projection matrix generated");
 	}

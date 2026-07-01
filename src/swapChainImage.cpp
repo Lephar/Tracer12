@@ -83,7 +83,7 @@ namespace tracer::graphics::swapChain {
 		commandList->SetDescriptorHeaps(1, &constantBufferDescriptorHeap);
 		commandList->SetGraphicsRootDescriptorTable(0, implementation->constantBufferDeviceView);
 		commandList->OMSetRenderTargets(1, &implementation->renderTargetView, false, &depthStencilView);
-		commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
 		commandList->ClearRenderTargetView(implementation->renderTargetView, clearColor, 0, nullptr);
 	}
 	
