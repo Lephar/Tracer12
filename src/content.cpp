@@ -120,10 +120,11 @@ namespace tracer::graphics::content {
 
 		Constant constants = {};
 
-		DirectX::SimpleMath::Vector3 position = { -2.0f, 2.0f, -4.0f };
-		DirectX::SimpleMath::Vector3 forward = { 0.5f, -0.5f, 1.0f };
+		DirectX::SimpleMath::Vector3 position = { 0.0f, 0.0f, -4.0f };
+		DirectX::SimpleMath::Vector3 forward = { 0.0f, 0.0f, 1.0f };
+		const DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
 		
-		float fieldOfView = DirectX::XM_PIDIV2;
+		float fieldOfView = DirectX::XM_PIDIV4;
 		float aspectRatio = 0.0f;
 		const float nearPlane = 0.25f;
 		const float farPlane = 256.0f;
@@ -249,12 +250,7 @@ namespace tracer::graphics::content {
 
 		std::println("Vertex buffer view set");
 
-		constants.view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, DirectX::SimpleMath::Vector3::UnitY);
-
-		std::println("View matrix generated");
-
 		aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
-
 		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlane, farPlane);;
 
 		std::println("Projection matrix generated");
@@ -274,6 +270,31 @@ namespace tracer::graphics::content {
 
 	void* getConstantBufferMemory() {
 		return constantBufferMemory;
+	}
+
+	void update() {
+		auto width = system::getWidth();
+		auto height = system::getHeight();
+		auto timeDelta = system::getTimeDelta();
+		auto mouseState = system::getMouseState();
+		auto keyboardState = system::getKeyboardState();
+
+		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(up, -2.0f * mouseState.x / width));
+
+		DirectX::SimpleMath::Vector3 right = forward.Cross(up);
+		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(right, -2.0f * mouseState.y / height));
+
+		DirectX::SimpleMath::Vector3 movement {
+			timeDelta * (keyboardState.D - keyboardState.A),
+			timeDelta * (keyboardState.R - keyboardState.F),
+			timeDelta * (keyboardState.W - keyboardState.S),
+		};
+
+		position += movement.x * right;
+		position += movement.y * up;
+		position += movement.z * forward;
+
+		constants.view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, DirectX::SimpleMath::Vector3::UnitY);
 	}
 
 	void draw() {

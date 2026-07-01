@@ -22,5 +22,6 @@ namespace tracer::graphics::content {
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getConstantBuffer();
 	void* getConstantBufferMemory();
 
+	void update();
 	void draw();
 }

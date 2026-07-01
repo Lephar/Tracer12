@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
 	auto pipeline = std::make_unique<tracer::graphics::Pipeline>("vertex", "pixel");
 
 	while (tracer::system::poll()) {
+		tracer::graphics::content::update();
 		tracer::graphics::swapChain::begin();
 		pipeline->bind();
 		tracer::graphics::swapChain::bind();
