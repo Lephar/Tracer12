@@ -9,7 +9,4 @@ namespace tracer::graphics::swapChain {
 	const DXGI_FORMAT getRenderTargetFormat();
 
 	void initialize();
-
-	void resize();
-	void destroy();
 }

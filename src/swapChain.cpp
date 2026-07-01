@@ -128,10 +128,4 @@ namespace tracer::graphics::swapChain {
 			images.emplace_back(renderTargetBuffer, renderTargetView, commandAllocator, fence);
 		}
 	}
-	
-	void resize() {
-	}
-	
-	void destroy() {
-	}
 }
