@@ -6,13 +6,13 @@ namespace tracer::graphics::content {
 	typedef uint32_t Index;
 
 	struct Vertex {
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT3 color;
+		DirectX::SimpleMath::Vector3 position;
+		DirectX::SimpleMath::Vector3 color;
 	};
 
 	struct Constant {
-		DirectX::XMFLOAT4X4 view;
-		DirectX::XMFLOAT4X4 projection;
+		DirectX::SimpleMath::Matrix view;
+		DirectX::SimpleMath::Matrix projection;
 	};
 
 	void load();

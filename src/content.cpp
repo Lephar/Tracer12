@@ -13,23 +13,23 @@
 namespace tracer::graphics::content {
 	namespace {
 		const Index indices[] = {
-			0, 1, 2,
-			0, 3, 1,
+			0, 2, 1,
+			0, 1, 3,
 
-			4, 5, 6,
-			4, 7, 5,
+			4, 6, 5,
+			4, 5, 7,
 
-			8, 9, 10,
-			8, 11, 9,
+			8, 10, 9,
+			8, 9, 11,
 
-			12, 13, 14,
-			12, 15, 13,
+			12, 14, 13,
+			12, 13, 15,
 
-			16, 17, 18,
-			16, 19, 17,
+			16, 18, 17,
+			16, 17, 19,
 
-			20, 21, 22,
-			20, 23, 21,
+			20, 22, 21,
+			20, 21, 23,
 		};
 
 		const Vertex vertices[] = {
@@ -120,11 +120,10 @@ namespace tracer::graphics::content {
 
 		Constant constants = {};
 
-		DirectX::XMFLOAT4 position = { -2.0f, 2.0f, -4.0f, 1.0f };
-		DirectX::XMFLOAT4 forward = { 0.5f, -0.5f, 1.0f, 0.0f };
-		const DirectX::XMFLOAT4 up = { 0.0f, 1.0f, 0.0f, 0.0f };
-
-		float fieldOfView = 0.0f;
+		DirectX::SimpleMath::Vector3 position = { -2.0f, 2.0f, -4.0f };
+		DirectX::SimpleMath::Vector3 forward = { 0.5f, -0.5f, 1.0f };
+		
+		float fieldOfView = DirectX::XM_PIDIV2;
 		float aspectRatio = 0.0f;
 		const float nearPlane = 0.25f;
 		const float farPlane = 256.0f;
@@ -250,24 +249,15 @@ namespace tracer::graphics::content {
 
 		std::println("Vertex buffer view set");
 
-		DirectX::XMVECTOR positionVector = DirectX::XMLoadFloat4(&position);
-		DirectX::XMVECTOR forwardVector = DirectX::XMLoadFloat4(&forward);
-		const DirectX::XMVECTOR upVector = DirectX::XMLoadFloat4(&up);
+		constants.view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, DirectX::SimpleMath::Vector3::UnitY);
 
-		const DirectX::XMVECTOR targetVector = DirectX::XMVectorAdd(positionVector, forwardVector);
-		const DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(positionVector, targetVector, upVector);
+		std::println("View matrix generated");
 
-		DirectX::XMStoreFloat4x4(&constants.view, view);
-
-		std::println("View matrix generated using position and direction");
-
-		fieldOfView = radians(60.0f);
 		aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
 
-		DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(fieldOfView, aspectRatio, nearPlane, farPlane);
-		DirectX::XMStoreFloat4x4(&constants.projection, projection);
+		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlane, farPlane);;
 
-		std::println("Camera properties set and projection matrix generated");
+		std::println("Projection matrix generated");
 	}
 
 	Constant& getConstants() {
