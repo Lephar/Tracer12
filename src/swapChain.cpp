@@ -137,16 +137,8 @@ namespace tracer::graphics::swapChain {
 
 			auto constantBufferMemory = reinterpret_cast<uint8_t*>(content::getConstantBufferMemory()) + constantBufferOffset;
 			std::println("\tConstant buffer memory set with offset");
-
-			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-			VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
-			std::println("\tCommand allocator created");
-
-			Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
-			VERIFY_COM(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
-			std::println("\tFence created");
 		
-			images.emplace_back(renderTargetBuffer, renderTargetView, constantBufferHostView, constantBufferDeviceView, constantBufferMemory, commandAllocator, fence);
+			images.emplace_back(renderTargetBuffer, renderTargetView, constantBufferHostView, constantBufferDeviceView, constantBufferMemory);
 		}
 	}
 }
