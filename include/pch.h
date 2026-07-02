@@ -26,6 +26,7 @@
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
 #include <DescriptorHeap.h>
+#include <CommonStates.h>
 #include <SimpleMath.h>
 #include <Mouse.h>
 #include <Keyboard.h>

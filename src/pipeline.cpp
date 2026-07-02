@@ -79,9 +79,6 @@ namespace tracer::graphics {
 		};
 
 		const auto inputElementDescCount = sizeof(inputElementDescs) / sizeof(D3D12_INPUT_ELEMENT_DESC);
-
-		auto depthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-		depthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_GREATER;
 		
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {
 			.pRootSignature = implementation->rootSignature.Get(),
@@ -90,7 +87,7 @@ namespace tracer::graphics {
 			.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
 			.SampleMask = UINT_MAX,
 			.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT),
-			.DepthStencilState = depthStencilState,
+			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,
 			.InputLayout = {
 				.pInputElementDescs = inputElementDescs,
 				.NumElements = inputElementDescCount,
