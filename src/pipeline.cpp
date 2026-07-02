@@ -84,9 +84,9 @@ namespace tracer::graphics {
 			.pRootSignature = implementation->rootSignature.Get(),
 			.VS = implementation->vertexShader->getByteCode(),
 			.PS = implementation->pixelShader->getByteCode(),
-			.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
+			.BlendState = DirectX::CommonStates::AlphaBlend,
 			.SampleMask = UINT_MAX,
-			.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT),
+			.RasterizerState = DirectX::CommonStates::CullCounterClockwise,
 			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,
 			.InputLayout = {
 				.pInputElementDescs = inputElementDescs,
