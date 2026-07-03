@@ -14,7 +14,10 @@ namespace tracer::graphics::content {
 			std::println("\t\t\tName: {}", data->name);
 		}
 
-		auto path = system::getDataFolder() / "assets" / folder / data->uri;
+		std::string uri{ data->uri };
+		std::replace(uri.begin(), uri.end(), '/', '\\');
+
+		auto path = system::getDataFolder() / "assets" / folder / uri;
 		std::println("\t\t\tPath: {}", path.string());
 	}
 
