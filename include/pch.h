@@ -11,6 +11,7 @@
 #include <chrono>
 #include <numbers>
 #include <fstream>
+#include <optional>
 #include <filesystem>
 
 // VC++

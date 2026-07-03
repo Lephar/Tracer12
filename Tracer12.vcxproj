@@ -67,13 +67,21 @@
     <None Include="Tracer12.slnx" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\asset.cpp" />
     <ClCompile Include="src\content.cpp" />
-    <ClCompile Include="src\verify.cpp" />
+    <ClCompile Include="src\implement.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\material.cpp" />
+    <ClCompile Include="src\mesh.cpp" />
+    <ClCompile Include="src\node.cpp" />
+    <ClCompile Include="src\primitive.cpp" />
+    <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\memory.cpp" />
     <ClCompile Include="src\numerics.cpp" />
-    <ClCompile Include="src\pch.cpp">
+    <ClCompile Include="src\precompile.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\pipeline.cpp" />
@@ -85,7 +93,13 @@
   <ItemGroup>
     <ClInclude Include="external\include\cgltf\cgltf.h" />
     <ClInclude Include="external\include\cgltf\cgltf_write.h" />
+    <ClInclude Include="include\asset.h" />
     <ClInclude Include="include\content.h" />
+    <ClInclude Include="include\material.h" />
+    <ClInclude Include="include\mesh.h" />
+    <ClInclude Include="include\node.h" />
+    <ClInclude Include="include\primitive.h" />
+    <ClInclude Include="include\texture.h" />
     <ClInclude Include="include\verify.h" />
     <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\memory.h" />
