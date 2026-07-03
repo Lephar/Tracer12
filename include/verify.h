@@ -54,7 +54,7 @@ namespace tracer {
 				std::println("Invalid JSON");
 			}
 			else if (result == cgltf_result_invalid_gltf) {
-				std::println("Invalid gLTF");
+				std::println("Invalid glTF");
 			}
 			else if (result == cgltf_result_invalid_options) {
 				std::println("Invalid options");
@@ -69,7 +69,7 @@ namespace tracer {
 				std::println("Out of memory");
 			}
 			else if (result == cgltf_result_legacy_gltf) {
-				std::println("Legacy gLTF");
+				std::println("Legacy glTF");
 			}
 			exit(EXIT_FAILURE);
 		}
