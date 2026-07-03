@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "content.h"
+#include "asset.h"
 
 #include "system.h"
 #include "graphics.h"
@@ -254,6 +255,9 @@ namespace tracer::graphics::content {
 		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, farPlane, nearPlane);
 
 		std::println("Projection matrix generated");
+
+		Asset asset{ "Sponza", "Sponza_Main" };
+		exit(EXIT_SUCCESS);
 	}
 
 	Constant& getConstants() {
