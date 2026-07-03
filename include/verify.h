@@ -42,6 +42,39 @@ namespace tracer {
 		}
 	}
 
+	inline void VERIFY_GLTF(cgltf_result result) {
+		if (result != cgltf_result_success) {
+			if (result == cgltf_result_data_too_short) {
+				std::println("Data too short");
+			}
+			else if (result == cgltf_result_unknown_format) {
+				std::println("Unknown format");
+			}
+			else if (result == cgltf_result_invalid_json) {
+				std::println("Invalid JSON");
+			}
+			else if (result == cgltf_result_invalid_gltf) {
+				std::println("Invalid gLTF");
+			}
+			else if (result == cgltf_result_invalid_options) {
+				std::println("Invalid options");
+			}
+			else if (result == cgltf_result_file_not_found) {
+				std::println("File not found");
+			}
+			else if (result == cgltf_result_io_error) {
+				std::println("IO error");
+			}
+			else if (result == cgltf_result_out_of_memory) {
+				std::println("Out of memory");
+			}
+			else if (result == cgltf_result_legacy_gltf) {
+				std::println("Legacy gLTF");
+			}
+			exit(EXIT_FAILURE);
+		}
+	}
+
 	inline void VERIFY_SHADER(Microsoft::WRL::ComPtr<IDxcResult> result) {
 		HRESULT status = {};
 		VERIFY_COM(result->GetStatus(&status));
