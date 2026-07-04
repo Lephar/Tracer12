@@ -132,6 +132,9 @@ namespace tracer::graphics::content {
 
 		uint32_t constantBufferAlignment = UINT32_MAX;
 
+		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingIndexBuffer = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingVertexBuffer = nullptr;
+
 		Microsoft::WRL::ComPtr<ID3D12Resource2> indexBuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> vertexBuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer = nullptr;
@@ -140,6 +143,8 @@ namespace tracer::graphics::content {
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
+		
+		std::unique_ptr<Asset> asset = nullptr;
 	}
 
 	void load() {
@@ -151,21 +156,11 @@ namespace tracer::graphics::content {
 		auto defaultHeapProperties = memory::getDefaultHeapProperties();
 		auto uploadHeapProperties = memory::getUploadHeapProperties();
 
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-		VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
-		std::println("Content command allocator created");
-
-		uint64_t fenceValue = 0;
-		Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
-		VERIFY_COM(device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
-		std::println("Content fence created and value set");
-
 		const uint32_t indicesSize = sizeof(indices);
 		const auto indexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(indicesSize);
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(indexBuffer.GetAddressOf())));
 		std::println("Index buffer created on default heap");
 
-		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingIndexBuffer;
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(stagingIndexBuffer.GetAddressOf())));
 		std::println("Staging index buffer created on upload heap");
 
@@ -174,7 +169,6 @@ namespace tracer::graphics::content {
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(vertexBuffer.GetAddressOf())));
 		std::println("Vertex buffer created on default heap");
 
-		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingVertexBuffer;
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(stagingVertexBuffer.GetAddressOf())));
 		std::println("Staging vertex buffer created on upload heap");
 
@@ -190,10 +184,6 @@ namespace tracer::graphics::content {
 		VERIFY_COM(constantBuffer->Map(0, &readRange, &constantBufferMemory));
 		std::println("Constant buffer memory mapped");
 
-		VERIFY_COM(commandAllocator->Reset());
-		VERIFY_COM(commandList->Reset(commandAllocator.Get(), nullptr));
-		std::println("Content command allocator and list reset");
-
 		D3D12_SUBRESOURCE_DATA indexSubresourceData = {
 			.pData = indices,
 			.RowPitch = indicesSize,
@@ -208,6 +198,7 @@ namespace tracer::graphics::content {
 
 		UpdateSubresources(commandList.Get(), indexBuffer.Get(), stagingIndexBuffer.Get(), 0, 0, 1, &indexSubresourceData);
 		UpdateSubresources(commandList.Get(), vertexBuffer.Get(), stagingVertexBuffer.Get(), 0, 0, 1, &vertexSubresourceData);
+		std::println("Buffer upload commands recorded");
 
 		const CD3DX12_RESOURCE_BARRIER bufferBarriers[] = {
 			CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER),
@@ -217,23 +208,7 @@ namespace tracer::graphics::content {
 		const auto bufferBarrierCount = sizeof(bufferBarriers) / sizeof(CD3DX12_RESOURCE_BARRIER);
 
 		commandList->ResourceBarrier(bufferBarrierCount, bufferBarriers);
-
-		VERIFY_COM(commandList->Close());
-
-		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
-		std::println("Subresource update command submitted");
-
-		fenceValue++;
-		VERIFY_COM(commandQueue->Signal(fence.Get(), fenceValue));
-
-		if (fence->GetCompletedValue() < fenceValue) {
-			auto fenceEvent = system::getEvent();
-
-			VERIFY_COM(fence->SetEventOnCompletion(fenceValue, fenceEvent));
-			VERIFY_COM(WaitForSingleObject(fenceEvent, INFINITE));
-		}
-
-		std::println("Subresource update command completed");
+		std::println("Buffer barriers recorded");
 
 		indexBufferView = {
 			.BufferLocation = indexBuffer->GetGPUVirtualAddress(),
@@ -256,8 +231,7 @@ namespace tracer::graphics::content {
 
 		std::println("Projection matrix generated");
 
-		Asset asset{ "Sponza", "Sponza_Main" };
-		exit(EXIT_SUCCESS);
+		asset = std::make_unique<Asset>("Sponza", "Sponza_Main");
 	}
 
 	Constant& getConstants() {

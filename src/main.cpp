@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
 	tracer::graphics::content::load();
 	tracer::graphics::swapChain::initialize();
 	auto pipeline = std::make_unique<tracer::graphics::Pipeline>("vertex", "pixel");
+	tracer::graphics::prepareLoop();
 
 	while (tracer::system::poll()) {
 		tracer::graphics::content::update();

@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "graphics.h"
+#include "system.h"
 
 #include "verify.h"
 
@@ -25,6 +26,10 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12DebugCommandQueue1> debugCommandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Fence1> fence = nullptr;
+
+		uint64_t fenceValue = 0;
 
 		DWORD callbackCookie = 0;
 
@@ -94,6 +99,35 @@ namespace tracer::graphics {
 
 		VERIFY_COM(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
 		std::println("Direct command list created");
+
+		VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
+		std::println("Command allocator created");
+
+		VERIFY_COM(device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
+		std::println("Fence created and value set");
+
+		VERIFY_COM(commandAllocator->Reset());
+		VERIFY_COM(commandList->Reset(commandAllocator.Get(), nullptr));
+		std::println("Command allocator and list reset");
+	}
+
+	void prepareLoop() {
+		VERIFY_COM(commandList->Close());
+
+		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
+		std::println("Initialization commands sent for execution");
+
+		fenceValue++;
+		VERIFY_COM(commandQueue->Signal(fence.Get(), fenceValue));
+
+		if (fence->GetCompletedValue() < fenceValue) {
+			auto fenceEvent = system::getEvent();
+
+			VERIFY_COM(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+			VERIFY_COM(WaitForSingleObject(fenceEvent, INFINITE));
+		}
+
+		std::println("Initialization commands completed");
 	}
 
 	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler() {

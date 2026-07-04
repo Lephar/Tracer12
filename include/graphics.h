@@ -4,6 +4,7 @@
 
 namespace tracer::graphics {
 	void initialize();
+	void prepareLoop();
 
 	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler();
 	Microsoft::WRL::ComPtr<IDxcUtils> getCompilerUtils();
