@@ -75,6 +75,9 @@ namespace tracer::system {
 	}
 
 	void initialize() {
+		VERIFY_COM(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+		std::println("COM library initialized with multithread support");
+
 		VERIFY_WIN(GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &instance));
 		std::println("Instance handle acquired");
 

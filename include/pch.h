@@ -31,6 +31,7 @@
 #include <SimpleMath.h>
 #include <Mouse.h>
 #include <Keyboard.h>
+#include <DirectXTex.h>
 
 // 3rd Party
 #include "cgltf/cgltf.h"
