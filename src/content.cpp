@@ -231,7 +231,7 @@ namespace tracer::graphics::content {
 
 		std::println("Projection matrix generated");
 
-		asset = std::make_unique<Asset>("Sponza", "Sponza_Main");
+		//asset = std::make_unique<Asset>("Sponza", "Sponza_Main");
 	}
 
 	Constant& getConstants() {

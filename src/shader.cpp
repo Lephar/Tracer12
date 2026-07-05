@@ -45,8 +45,16 @@ namespace tracer::graphics {
 		WCHAR wType[UCHAR_MAX];
 		VERIFY(swprintf_s(wType, UCHAR_MAX, L"%hs", type) != -1);
 
+		LPCWSTR argumentList[] = {
+			DXC_ARG_DEBUG,
+			DXC_ARG_SKIP_OPTIMIZATIONS,
+			DXC_ARG_WARNINGS_ARE_ERRORS,
+		};
+
+		const uint32_t argumentCount = sizeof(argumentList) / sizeof(LPCWSTR);
+
 		Microsoft::WRL::ComPtr<IDxcCompilerArgs> arguments;
-		VERIFY_COM(getCompilerUtils()->BuildArguments(wName, L"main", wType, nullptr, 0, nullptr, 0, arguments.GetAddressOf()));
+		VERIFY_COM(getCompilerUtils()->BuildArguments(wName, L"main", wType, argumentList, argumentCount, nullptr, 0, arguments.GetAddressOf()));
 		std::println("\tArguments built");
 
 		Microsoft::WRL::ComPtr<IDxcResult> result;
