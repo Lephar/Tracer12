@@ -9,7 +9,7 @@ namespace tracer::graphics {
 		std::unique_ptr<Implementation> implementation;
 
 	public:
-		Pipeline(const char* vertexShaderName, const char* pixelShaderName);
+		Pipeline(LPCWSTR vertexShaderName, LPCWSTR pixelShaderName);
 
 		Pipeline(const Pipeline& pipeline) = delete;
 		Pipeline& operator=(const Pipeline& pipeline) = delete;

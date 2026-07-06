@@ -9,7 +9,7 @@ namespace tracer::graphics {
 		std::unique_ptr<Implementation> implementation;
 
 	public:
-		Shader(const char* name, const char* type);
+		Shader(LPCWSTR name, LPCWSTR type);
 
 		Shader(const Shader& shader) = delete;
 		Shader& operator=(const Shader& shader) = delete;

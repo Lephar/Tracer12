@@ -18,7 +18,7 @@ namespace tracer::graphics {
 		std::unique_ptr<Shader> pixelShader;
 	};
 
-	Pipeline::Pipeline(const char* vertexShaderName, const char* pixelShaderName) : implementation(std::make_unique<Implementation>()) {
+	Pipeline::Pipeline(LPCWSTR vertexShaderName, LPCWSTR pixelShaderName) : implementation(std::make_unique<Implementation>()) {
 		D3D12_DESCRIPTOR_RANGE1 descriptorRange = {
 				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
 				.NumDescriptors = 1,
@@ -54,8 +54,8 @@ namespace tracer::graphics {
 		VERIFY_COM(device->CreateRootSignature(1, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
 		std::println("Root signature created");
 
-		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, "vs_6_9");
-		implementation->pixelShader = std::make_unique<Shader>(pixelShaderName, "ps_6_9");
+		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, L"vs_6_9");
+		implementation->pixelShader = std::make_unique<Shader>(pixelShaderName, L"ps_6_9");
 
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{

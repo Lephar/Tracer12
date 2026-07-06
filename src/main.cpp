@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
 	tracer::graphics::memory::initialize();
 	tracer::graphics::content::load();
 	tracer::graphics::swapChain::initialize();
-	auto pipeline = std::make_unique<tracer::graphics::Pipeline>("vertex", "pixel");
+	auto pipeline = std::make_unique<tracer::graphics::Pipeline>(L"vertex", L"pixel");
 	tracer::graphics::prepareLoop();
 
 	while (tracer::system::poll()) {

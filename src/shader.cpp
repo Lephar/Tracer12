@@ -12,38 +12,25 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<IDxcBlob> byteCode;
 	};
 
-	Shader::Shader(const char* name, const char* type) : implementation(std::make_unique<Implementation>()) {
-		std::println("Shader name: {}", name);
+	Shader::Shader(LPCWSTR name, LPCWSTR type) : implementation(std::make_unique<Implementation>()) {
+		auto path = system::getDataFolder() / "shaders" / (std::wstring(name) + L".hlsl");
+		std::println("Shader path: {}", path.string());
 
-		auto path = system::getDataFolder() / "shaders" / (std::string(name) + ".hlsl");
-		std::println("\tPath: {}", path.string());
+		BOOL encodingKnown = false;
+		uint32_t codePage = DXC_CP_ACP;
+		Microsoft::WRL::ComPtr<IDxcBlobEncoding> code;
 
-		auto size = std::filesystem::file_size(path);
-		std::println("\tFile size: {}", size);
+		auto compilerUtils = getCompilerUtils();
+		VERIFY_COM(compilerUtils->LoadFile(path.wstring().c_str(), &codePage, code.GetAddressOf()));
+		std::println("\tFile loaded: {} bytes", code->GetBufferSize());
 
-		std::vector<char> content(size);
-		std::println("\tBuffer allocated");
-
-		std::ifstream file(path, std::ios_base::in);
-		std::println("\tFile opened in read mode");
-
-		file.read(content.data(), size);
-		std::println("\tData loaded into buffer");
-
-		size = file.gcount();
-		std::println("\tData size: {}", size);
+		VERIFY_COM(code->GetEncoding(&encodingKnown, &codePage));
 
 		DxcText text = {
-			.Ptr = content.data(),
-			.Size = size,
-			.Encoding = 0,
+			.Ptr = code->GetBufferPointer(),
+			.Size = code->GetBufferSize(),
+			.Encoding = codePage,
 		};
-
-		WCHAR wName[UCHAR_MAX];
-		VERIFY(swprintf_s(wName, UCHAR_MAX, L"%hs", name) != -1);
-
-		WCHAR wType[UCHAR_MAX];
-		VERIFY(swprintf_s(wType, UCHAR_MAX, L"%hs", type) != -1);
 
 		LPCWSTR argumentList[] = {
 			DXC_ARG_DEBUG,
@@ -54,7 +41,7 @@ namespace tracer::graphics {
 		const uint32_t argumentCount = sizeof(argumentList) / sizeof(LPCWSTR);
 
 		Microsoft::WRL::ComPtr<IDxcCompilerArgs> arguments;
-		VERIFY_COM(getCompilerUtils()->BuildArguments(wName, L"main", wType, argumentList, argumentCount, nullptr, 0, arguments.GetAddressOf()));
+		VERIFY_COM(compilerUtils->BuildArguments(name, L"main", type, argumentList, argumentCount, nullptr, 0, arguments.GetAddressOf()));
 		std::println("\tArguments built");
 
 		Microsoft::WRL::ComPtr<IDxcResult> result;
