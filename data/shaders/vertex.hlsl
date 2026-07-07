@@ -1,13 +1,17 @@
 struct VS_INPUT
 {
-    float3 Position : POSITION;
-    float3 Color : COLOR;
+    float4 position : POSITION;
+    float4 tangent : TANGENT;
+    float4 normal : NORMAL;
+    float4 texcoord : TEXCOORD;
 };
 
 struct VS_OUTPUT
 {
-    float4 Position : SV_POSITION;
-    float4 Color : COLOR;
+    float4 position : SV_POSITION;
+    float4 tangent : TANGENT;
+    float4 normal : NORMAL;
+    float4 texcoord : TEXCOORD;
 };
 
 cbuffer ConstantBuffer : register(b0)
@@ -20,8 +24,10 @@ VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     
-    output.Position = mul(projection, mul(view, float4(input.Position, 1.0f)));
-    output.Color = float4(input.Color, 1.0f);
+    output.position = mul(projection, mul(view, input.position));
+    output.tangent = input.tangent;
+    output.normal = input.normal;
+    output.texcoord = input.texcoord;
     
     return output;
 }

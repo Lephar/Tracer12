@@ -13,7 +13,9 @@ namespace tracer::graphics::content {
 		std::println("\tNode name: {}", data->name);
 
 		if (data->mesh) {
-			implementation->mesh.emplace(data->mesh, materials);
+			cgltf_float transform[16];
+			cgltf_node_transform_world(data, transform);
+			implementation->mesh.emplace(data->mesh, transform, materials);
 		}
 
 		for (cgltf_size childIndex = 0; childIndex < data->children_count; childIndex++) {
@@ -27,6 +29,16 @@ namespace tracer::graphics::content {
 	Node& Node::operator=(Node&& node) noexcept {
 		implementation = std::move(node.implementation);
 		return *this;
+	}
+
+	void Node::draw() {
+		if (implementation->mesh.has_value()) {
+			implementation->mesh->draw();
+		}
+
+		for (auto& child : implementation->children) {
+			child.draw();
+		}
 	}
 
 	Node::~Node() = default;

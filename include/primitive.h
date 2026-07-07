@@ -18,6 +18,8 @@ namespace tracer::graphics::content {
 		Primitive(Primitive&& primitive) noexcept;
 		Primitive& operator=(Primitive&& primitive) noexcept;
 
+		void draw();
+
 		~Primitive();
 	};
 }

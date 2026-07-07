@@ -34,7 +34,7 @@ namespace tracer::graphics::content {
 
 		for (cgltf_size materialIndex = 0; materialIndex < data->materials_count; materialIndex++) {
 			cgltf_material* materialData = &data->materials[materialIndex];
-			implementation->materials.emplace_back(folder, materialData);
+			//implementation->materials.emplace_back(folder, materialData);
 		}
 
 		cgltf_scene* scene = data->scene;
@@ -52,6 +52,12 @@ namespace tracer::graphics::content {
 	Asset& Asset::operator=(Asset&& asset) noexcept {
 		implementation = std::move(asset.implementation);
 		return *this;
+	}
+
+	void Asset::draw() {
+		for (auto& node : implementation->nodes) {
+			node.draw();
+		}
 	}
 
 	Asset::~Asset() = default;

@@ -13,113 +13,12 @@
 
 namespace tracer::graphics::content {
 	namespace {
-		const Index indices[] = {
-			0, 2, 1,
-			0, 1, 3,
-
-			4, 6, 5,
-			4, 5, 7,
-
-			8, 10, 9,
-			8, 9, 11,
-
-			12, 14, 13,
-			12, 13, 15,
-
-			16, 18, 17,
-			16, 17, 19,
-
-			20, 22, 21,
-			20, 21, 23,
-		};
-
-		const Vertex vertices[] = {
-			{
-				{-0.5f,  0.5f, -0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{ 0.5f, -0.5f, -0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f, -0.5f, -0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f,  0.5f, -0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-
-			{
-				{ 0.5f, -0.5f, -0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{ 0.5f,  0.5f,  0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f, -0.5f,  0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f,  0.5f, -0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-
-			{
-				{-0.5f,  0.5f,  0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{-0.5f, -0.5f, -0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f, -0.5f,  0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f,  0.5f, -0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-
-			{
-				{ 0.5f,  0.5f,  0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{-0.5f, -0.5f,  0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f, -0.5f,  0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f,  0.5f,  0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-
-			{
-				{-0.5f,  0.5f, -0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{ 0.5f,  0.5f,  0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f,  0.5f, -0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f,  0.5f,  0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-
-			{
-				{ 0.5f, -0.5f,  0.5f},
-				{ 1.0f,  0.0f,  0.0f},
-			}, {
-				{-0.5f, -0.5f, -0.5f},
-				{ 1.0f,  0.0f,  1.0f},
-			}, {
-				{ 0.5f, -0.5f, -0.5f},
-				{ 0.0f,  0.0f,  1.0f},
-			}, {
-				{-0.5f, -0.5f,  0.5f},
-				{ 0.0f,  1.0f,  0.0f},
-			},
-		};
+		std::vector<Index> indices = {};
+		std::vector<Vertex> vertices = {};
 
 		Constant constants = {};
+
+		std::vector<Asset> assets = {};
 
 		DirectX::SimpleMath::Vector3 position = { 0.0f, 0.0f, -4.0f };
 		DirectX::SimpleMath::Vector3 forward = { 0.0f, 0.0f, 1.0f };
@@ -144,7 +43,6 @@ namespace tracer::graphics::content {
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
 		
-		std::unique_ptr<Asset> asset = nullptr;
 	}
 
 	void load() {
@@ -156,7 +54,11 @@ namespace tracer::graphics::content {
 		auto defaultHeapProperties = memory::getDefaultHeapProperties();
 		auto uploadHeapProperties = memory::getUploadHeapProperties();
 
-		const uint32_t indicesSize = sizeof(indices);
+		assets.emplace_back("Sponza", "Sponza_Main");
+
+		auto indicesSize = static_cast<uint32_t>(indices.size() * sizeof(Index));
+		auto verticesSize = static_cast<uint32_t>(vertices.size() * sizeof(Vertex));
+
 		const auto indexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(indicesSize);
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(indexBuffer.GetAddressOf())));
 		std::println("Index buffer created on default heap");
@@ -164,7 +66,6 @@ namespace tracer::graphics::content {
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(stagingIndexBuffer.GetAddressOf())));
 		std::println("Staging index buffer created on upload heap");
 
-		const uint32_t verticesSize = sizeof(vertices);
 		const auto vertexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(verticesSize);
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(vertexBuffer.GetAddressOf())));
 		std::println("Vertex buffer created on default heap");
@@ -185,13 +86,13 @@ namespace tracer::graphics::content {
 		std::println("Constant buffer memory mapped");
 
 		D3D12_SUBRESOURCE_DATA indexSubresourceData = {
-			.pData = indices,
+			.pData = indices.data(),
 			.RowPitch = indicesSize,
 			.SlicePitch = indicesSize,
 		};
 
 		D3D12_SUBRESOURCE_DATA vertexSubresourceData = {
-			.pData = vertices,
+			.pData = vertices.data(),
 			.RowPitch = verticesSize,
 			.SlicePitch = verticesSize,
 		};
@@ -230,8 +131,14 @@ namespace tracer::graphics::content {
 		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, farPlane, nearPlane);
 
 		std::println("Projection matrix generated");
+	}
 
-		//asset = std::make_unique<Asset>("Sponza", "Sponza_Main");
+	std::vector<Index>& getIndices() {
+		return indices;
+	}
+
+	std::vector<Vertex>& getVertices() {
+		return vertices;
 	}
 
 	Constant& getConstants() {
@@ -281,6 +188,9 @@ namespace tracer::graphics::content {
 
 		commandList->IASetIndexBuffer(&indexBufferView);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
-		commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
+
+		for (auto& asset : assets) {
+			asset.draw();
+		}
 	}
 }

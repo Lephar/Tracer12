@@ -6,8 +6,10 @@ namespace tracer::graphics::content {
 	typedef uint32_t Index;
 
 	struct Vertex {
-		DirectX::SimpleMath::Vector3 position;
-		DirectX::SimpleMath::Vector3 color;
+		DirectX::SimpleMath::Vector4 position;
+		DirectX::SimpleMath::Vector4 tangent;
+		DirectX::SimpleMath::Vector4 normal;
+		DirectX::SimpleMath::Vector4 texcoord;
 	};
 
 	struct Constant {
@@ -17,6 +19,8 @@ namespace tracer::graphics::content {
 
 	void load();
 
+	std::vector<Index>& getIndices();
+	std::vector<Vertex>& getVertices();
 	Constant& getConstants();
 	uint32_t getConstantBufferAlignment();
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getConstantBuffer();

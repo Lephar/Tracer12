@@ -16,6 +16,8 @@ namespace tracer::graphics::content {
 		Asset(Asset&& asset) noexcept;
 		Asset& operator=(Asset&& asset) noexcept;
 
+		void draw();
+
 		~Asset();
 	};
 }

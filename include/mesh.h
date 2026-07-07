@@ -10,13 +10,15 @@ namespace tracer::graphics::content {
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Mesh(cgltf_mesh* data, std::vector<Material>& materials);
+		Mesh(cgltf_mesh* data, cgltf_float* transform, std::vector<Material>& materials);
 
 		Mesh(const Mesh& mesh) = delete;
 		Mesh& operator=(const Mesh& mesh) = delete;
 
 		Mesh(Mesh&& mesh) noexcept;
 		Mesh& operator=(Mesh&& mesh) noexcept;
+
+		void draw();
 
 		~Mesh();
 	};

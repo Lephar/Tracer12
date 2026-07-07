@@ -18,6 +18,8 @@ namespace tracer::graphics::content {
 		Node(Node&& node) noexcept;
 		Node& operator=(Node&& node) noexcept;
 
+		void draw();
+
 		~Node();
 	};
 }
