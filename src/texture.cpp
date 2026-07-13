@@ -18,9 +18,7 @@ namespace tracer::content {
 	Texture::Texture(std::filesystem::path folder, cgltf_image* data, bool compress) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
-		if (data->name) {
-			debug::print("Name: %s", data->name);
-		}
+		debug::print("Name: %s", data->name);
 
 		std::string uri{ data->uri };
 		std::replace(uri.begin(), uri.end(), '/', '\\');

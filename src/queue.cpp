@@ -60,27 +60,42 @@ namespace tracer::graphics::queue {
 	}
 
 	void begin() {
+		debug::print("Started recording:");
+		debug::incrementDepth();
+
 		debug::verify::com(commandAllocator->Reset());
 		debug::verify::com(commandList->Reset(commandAllocator.Get(), nullptr));
+
+		debug::print("Command allocator and list reset");
 	}
 
 	void end() {
 		debug::verify::com(commandList->Close());
+
+		debug::decrementDepth();
+		debug::print("Stopped recording");
 	}
 
 	void execute() {
 		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
+		debug::print("Command list sent to the queue for execution");
 	}
 
 	void signal() {
 		fenceValue++;
 		debug::verify::com(commandQueue->Signal(fence.Get(), fenceValue));
+		
+		debug::print("Fence signal sent for completion");
 	}
 
 	void wait() {
 		if (fence->GetCompletedValue() < fenceValue) {
+			debug::print("Waiting for the fence");
+
 			debug::verify::com(fence->SetEventOnCompletion(fenceValue, fenceEvent));
 			debug::verify::com(WaitForSingleObject(fenceEvent, INFINITE));
 		}
+
+		debug::print("Fence completion signal acquired");
 	}
 }
