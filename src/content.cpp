@@ -1,89 +1,150 @@
 #include "pch.h"
 
 #include "content.h"
-#include "asset.h"
-
-#include "system.h"
-#include "graphics.h"
-#include "memory.h"
-#include "swapChain.h"
 
 #include "verify.h"
-#include "numerics.h"
 
-namespace tracer::graphics::content {
+namespace tracer::content {
 	namespace {
-		std::vector<Index> indices = {};
-		std::vector<Vertex> vertices = {};
-
-		Constant constants = {};
+		std::filesystem::path assetFolder = {};
 
 		std::vector<Asset> assets = {};
+		std::vector<Material> materials = {};
+		std::vector<Texture> textures = {};
+		std::vector<Camera> cameras = {};
+		std::vector<Light> lights = {};
+		std::vector<Mesh> meshes = {};
+		std::vector<Primitive> primitives = {};
 
-		DirectX::SimpleMath::Vector3 position = { 0.0f, 0.0f, -4.0f };
-		DirectX::SimpleMath::Vector3 forward = { 0.0f, 0.0f, 1.0f };
-		const DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
-		
-		float fieldOfView = DirectX::XM_PIDIV4;
-		float aspectRatio = 0.0f;
-		const float nearPlane = 0.25f;
-		const float farPlane = 256.0f;
+		std::vector<Camera::Constant> cameraConstants = {};
+		std::vector<Light::Constant> lightConstants = {};
+		std::vector<Mesh::Constant> meshConstants = {};
 
-		uint32_t constantBufferAlignment = UINT32_MAX;
+		std::vector<Primitive::Index> indices = {};
+		std::vector<Primitive::Vertex> vertices = {};
 
 		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingIndexBuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingVertexBuffer = nullptr;
 
 		Microsoft::WRL::ComPtr<ID3D12Resource2> indexBuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> vertexBuffer = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer = nullptr;
-
-		void* constantBufferMemory = nullptr;
 
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-		
 	}
 
-	void load() {
-		auto device = getDevice();
+	void load(std::filesystem::path dataFolder) {
+		assetFolder = dataFolder / "assets";
+		std::println("Asset folder set: {}", assetFolder.string());
 
-		auto commandQueue = getCommandQueue();
-		auto commandList = getCommandList();
+		assets.emplace_back("Sponza", "Sponza_Main.gltf");
+	}
 
-		auto defaultHeapProperties = memory::getDefaultHeapProperties();
-		auto uploadHeapProperties = memory::getUploadHeapProperties();
+	std::filesystem::path getAssetFolder() {
+		return assetFolder;
+	}
 
-		assets.emplace_back("Sponza", "Sponza_Main");
+	std::vector<Asset>& getAssets() {
+		return assets;
+	}
+	
+	std::vector<Material>& getMaterials() {
+		return materials;
+	}
+	
+	std::vector<Texture>& getTextures() {
+		return textures;
+	}
+	
+	std::vector<Camera>& getCameras() {
+		return cameras;
+	}
+	
+	std::vector<Light>& getLights() {
+		return lights;
+	}
+	
+	std::vector<Mesh>& getMeshes() {
+		return meshes;
+	}
+	
+	std::vector<Primitive>& getPrimitives() {
+		return primitives;
+	}
+	
+	std::vector<Camera::Constant>& getCameraConstants() {
+		return cameraConstants;
+	}
+	
+	std::vector<Light::Constant>& getLightConstants() {
+		return lightConstants;
+	}
+	
+	std::vector<Mesh::Constant>& getMeshConstants() {
+		return meshConstants;
+	}
+	
+	std::vector<Primitive::Index>& getIndices() {
+		return indices;
+	}
+	
+	std::vector<Primitive::Vertex>& getVertices() {
+		return vertices;
+	}
 
-		auto indicesSize = static_cast<uint32_t>(indices.size() * sizeof(Index));
-		auto verticesSize = static_cast<uint32_t>(vertices.size() * sizeof(Vertex));
+	const uint32_t getMaterialTextureCount() {
+		return Material::getTextureCount();
+	}
+
+	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_HEAP_PROPERTIES defaultHeapProperties, D3D12_HEAP_PROPERTIES uploadHeapProperties, std::shared_ptr<DirectX::DescriptorHeap> shaderResourceDescriptorHeap) {
+		for (uint32_t textureIndex = 0; textureIndex < textures.size(); textureIndex++) {
+			auto& texture = textures.at(textureIndex);
+			auto shaderResourceView = shaderResourceDescriptorHeap->GetCpuHandle(textureIndex);
+			texture.createResources(device, uploadHeapProperties, shaderResourceView);
+		}
+
+		auto indicesSize = static_cast<uint32_t>(indices.size() * sizeof(Primitive::Index));
+		auto verticesSize = static_cast<uint32_t>(vertices.size() * sizeof(Primitive::Vertex));
 
 		const auto indexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(indicesSize);
-		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(indexBuffer.GetAddressOf())));
-		std::println("Index buffer created on default heap");
-
+		const auto vertexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(verticesSize);
+		
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(stagingIndexBuffer.GetAddressOf())));
 		std::println("Staging index buffer created on upload heap");
-
-		const auto vertexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(verticesSize);
-		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(vertexBuffer.GetAddressOf())));
-		std::println("Vertex buffer created on default heap");
 
 		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(stagingVertexBuffer.GetAddressOf())));
 		std::println("Staging vertex buffer created on upload heap");
 
-		const auto swapChainImageCount = swapChain::getImageCount();
-		constantBufferAlignment = static_cast<uint32_t>(align(sizeof(Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
-		const auto constantBufferSize = static_cast<uint32_t>(align(swapChainImageCount * constantBufferAlignment, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
+		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &indexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(indexBuffer.GetAddressOf())));
+		std::println("Index buffer created on default heap");
 
-		auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
-		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
-		std::println("Constant buffer created");
+		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &vertexBufferResourceDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, nullptr, IID_PPV_ARGS(vertexBuffer.GetAddressOf())));
+		std::println("Vertex buffer created on default heap");
 
-		CD3DX12_RANGE readRange(0, 0);
-		VERIFY_COM(constantBuffer->Map(0, &readRange, &constantBufferMemory));
-		std::println("Constant buffer memory mapped");
+		indexBufferView = {
+			.BufferLocation = indexBuffer->GetGPUVirtualAddress(),
+			.SizeInBytes = indicesSize,
+			.Format = DXGI_FORMAT_R32_UINT,
+		};
+
+		std::println("Index buffer view set");
+
+		vertexBufferView = {
+			.BufferLocation = vertexBuffer->GetGPUVirtualAddress(),
+			.SizeInBytes = verticesSize,
+			.StrideInBytes = sizeof(Primitive::Vertex),
+		};
+
+		std::println("Vertex buffer view set");
+	}
+
+	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		for (auto& texture : textures) {
+			texture.recordUpload(commandList);
+		}
+
+		auto indicesSize = static_cast<uint32_t>(indices.size() * sizeof(Primitive::Index));
+		auto verticesSize = static_cast<uint32_t>(vertices.size() * sizeof(Primitive::Vertex));
 
 		D3D12_SUBRESOURCE_DATA indexSubresourceData = {
 			.pData = indices.data(),
@@ -101,48 +162,47 @@ namespace tracer::graphics::content {
 		UpdateSubresources(commandList.Get(), vertexBuffer.Get(), stagingVertexBuffer.Get(), 0, 0, 1, &vertexSubresourceData);
 		std::println("Buffer upload commands recorded");
 
-		const CD3DX12_RESOURCE_BARRIER bufferBarriers[] = {
+		const D3D12_RESOURCE_BARRIER bufferBarriers[] = {
 			CD3DX12_RESOURCE_BARRIER::Transition(indexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_INDEX_BUFFER),
 			CD3DX12_RESOURCE_BARRIER::Transition(vertexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER),
 		};
 
-		const auto bufferBarrierCount = sizeof(bufferBarriers) / sizeof(CD3DX12_RESOURCE_BARRIER);
+		const auto bufferBarrierCount = sizeof(bufferBarriers) / sizeof(D3D12_RESOURCE_BARRIER);
 
 		commandList->ResourceBarrier(bufferBarrierCount, bufferBarriers);
 		std::println("Buffer barriers recorded");
-
-		indexBufferView = {
-			.BufferLocation = indexBuffer->GetGPUVirtualAddress(),
-			.SizeInBytes = indicesSize,
-			.Format = DXGI_FORMAT_R32_UINT,
-		};
-
-		std::println("Index buffer view set");
-
-		vertexBufferView = {
-			.BufferLocation = vertexBuffer->GetGPUVirtualAddress(),
-			.SizeInBytes = verticesSize,
-			.StrideInBytes = sizeof(Vertex),
-		};
-
-		std::println("Vertex buffer view set");
-
-		aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
-		constants.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, farPlane, nearPlane);
-
-		std::println("Projection matrix generated");
+	}
+	/*
+	namespace {
+		
+		Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer = nullptr;
+		void* constantBufferMemory = nullptr;
 	}
 
-	std::vector<Index>& getIndices() {
-		return indices;
-	}
+	void loadAAAAAAAAAAAA() {
+		auto device = getDevice();
 
-	std::vector<Vertex>& getVertices() {
-		return vertices;
-	}
+		auto commandQueue = getCommandQueue();
+		auto commandList = getCommandList();
 
-	Constant& getConstants() {
-		return constants;
+		auto defaultHeapProperties = memory::getDefaultHeapProperties();
+		auto uploadHeapProperties = memory::getUploadHeapProperties();
+
+		assets.emplace_back("Sponza", "Sponza_Main");
+
+		
+		const auto swapChainImageCount = swapChain::getImageCount();
+		constantBufferAlignment = static_cast<uint32_t>(align(sizeof(Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
+		const auto constantBufferSize = static_cast<uint32_t>(align(swapChainImageCount * constantBufferAlignment, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
+
+		auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
+		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
+		std::println("Constant buffer created");
+
+		CD3DX12_RANGE readRange(0, 0);
+		VERIFY_COM(constantBuffer->Map(0, &readRange, &constantBufferMemory));
+		std::println("Constant buffer memory mapped");
+
 	}
 
 	uint32_t getConstantBufferAlignment() {
@@ -193,4 +253,5 @@ namespace tracer::graphics::content {
 			asset.draw();
 		}
 	}
+	*/
 }

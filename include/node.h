@@ -2,15 +2,13 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::content {
-	class Material;
-
+namespace tracer::content {
 	class Node {
 	private:
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Node(cgltf_node* data, std::vector<Material>& materials);
+		Node(cgltf_node* data);
 
 		Node(const Node& node) = delete;
 		Node& operator=(const Node& node) = delete;
@@ -18,7 +16,7 @@ namespace tracer::graphics::content {
 		Node(Node&& node) noexcept;
 		Node& operator=(Node&& node) noexcept;
 
-		void draw();
+		//void draw();
 
 		~Node();
 	};

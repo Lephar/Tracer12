@@ -2,15 +2,22 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::content {
-	class Material;
-
+namespace tracer::content {
 	class Primitive {
 	private:
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Primitive(cgltf_primitive* data, std::vector<Material>& materials);
+		typedef uint32_t Index;
+
+		struct Vertex {
+			DirectX::SimpleMath::Vector4 position;
+			DirectX::SimpleMath::Vector4 tangent;
+			DirectX::SimpleMath::Vector4 normal;
+			DirectX::SimpleMath::Vector4 texcoord;
+		};
+
+		Primitive(cgltf_primitive* data);
 
 		Primitive(const Primitive& primitive) = delete;
 		Primitive& operator=(const Primitive& primitive) = delete;
@@ -18,7 +25,7 @@ namespace tracer::graphics::content {
 		Primitive(Primitive&& primitive) noexcept;
 		Primitive& operator=(Primitive&& primitive) noexcept;
 
-		void draw();
+		//void draw();
 
 		~Primitive();
 	};

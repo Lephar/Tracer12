@@ -1,20 +1,20 @@
 #include "pch.h"
 
 #include "primitive.h"
-#include "content.h"
 
+#include "content.h"
 #include "graphics.h"
 
 #include "verify.h"
 
-namespace tracer::graphics::content {
+namespace tracer::content {
 	struct Primitive::Implementation {
-		uint64_t indexBegin;
-		uint64_t indexCount;
-		uint64_t vertexOffset;
+		cgltf_size indexBegin;
+		cgltf_size indexCount;
+		cgltf_size vertexOffset;
 	};
 
-	Primitive::Primitive(cgltf_primitive* data, std::vector<Material>& materials) : implementation(std::make_unique<Implementation>()) {
+	Primitive::Primitive(cgltf_primitive* data) : implementation(std::make_unique<Implementation>()) {
 		auto& indices = getIndices();
 		auto& vertices = getVertices();
 
@@ -139,10 +139,10 @@ namespace tracer::graphics::content {
 		implementation = std::move(primitive.implementation);
 		return *this;
 	}
-
+	/*
 	void Primitive::draw() {
 		getCommandList()->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
 	}
-
+	*/
 	Primitive::~Primitive() = default;
 }

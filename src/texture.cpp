@@ -2,35 +2,36 @@
 
 #include "texture.h"
 
-#include "system.h"
-#include "graphics.h"
-#include "memory.h"
+#include "content.h"
 
 #include "verify.h"
 
-namespace tracer::graphics::content {
+namespace tracer::content {
 	struct Texture::Implementation {
 		DirectX::ScratchImage image;
-		Microsoft::WRL::ComPtr<ID3D12Resource2> stagingBuffer;
+		std::vector<D3D12_SUBRESOURCE_DATA> subresources;
+		Microsoft::WRL::ComPtr<ID3D12Resource2> buffer;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> texture;
+		D3D12_CPU_DESCRIPTOR_HANDLE view;
 	};
 
-	Texture::Texture(const char* folder, cgltf_image* data) : implementation(std::make_unique<Implementation>()) {
+	Texture::Texture(std::filesystem::path folder, cgltf_image* data, bool compress) : implementation(std::make_unique<Implementation>()) {
 		if (data->name) {
 			std::println("\t\t\tName: {}", data->name);
+		}
+		else {
+			std::println("\t\t\tTexture:");
 		}
 
 		std::string uri{ data->uri };
 		std::replace(uri.begin(), uri.end(), '/', '\\');
+		std::println("\t\t\tURI: {}", uri);
 
-		auto path = system::getDataFolder() / "assets" / folder / uri;
-		std::println("\t\t\tPath: {}", path.string());
+		auto path = folder / uri;
 
-		DirectX::ScratchImage image = {};
+		DirectX::ScratchImage image;
 		VERIFY_COM(DirectX::LoadFromWICFile(path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image, nullptr));
 		std::println("\t\t\tImage loaded: {}x{}", image.GetImages()->width, image.GetImages()->height);
-
-		const bool compress = false;
 
 		if (compress) {
 			DirectX::CompressOptions options = {
@@ -45,28 +46,53 @@ namespace tracer::graphics::content {
 		else {
 			implementation->image = std::move(image);
 		}
+	}
 
-		auto device = getDevice();
-		VERIFY(DirectX::IsSupportedTexture(device.Get(), implementation->image.GetMetadata()));
+	Texture::Texture(Texture&& texture) noexcept : implementation(std::move(texture.implementation)) {}
+
+	Texture& Texture::operator=(Texture&& texture) noexcept {
+		implementation = std::move(texture.implementation);
+		return *this;
+	}
+
+	void Texture::createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_HEAP_PROPERTIES uploadHeapProperties, D3D12_CPU_DESCRIPTOR_HANDLE textureView) {
+		auto& metadata = implementation->image.GetMetadata();
+
+		VERIFY(DirectX::IsSupportedTexture(device.Get(), metadata));
 		std::println("\t\t\tTexture support checked");
 
-		VERIFY_COM(DirectX::CreateTextureEx(device.Get(), implementation->image.GetMetadata(), D3D12_RESOURCE_FLAG_NONE, DirectX::CREATETEX_DEFAULT, reinterpret_cast<ID3D12Resource**>(implementation->texture.GetAddressOf())));
+		VERIFY_COM(DirectX::CreateTextureEx(device.Get(), metadata, D3D12_RESOURCE_FLAG_NONE, DirectX::CREATETEX_DEFAULT, reinterpret_cast<ID3D12Resource**>(implementation->texture.GetAddressOf())));
 		std::println("\t\t\tTexture created");
 
-		std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-		VERIFY_COM(PrepareUpload(getDevice().Get(), implementation->image.GetImages(), implementation->image.GetImageCount(), implementation->image.GetMetadata(), subresources));
+		D3D12_SHADER_RESOURCE_VIEW_DESC shaderResourceDesc = {
+			.Format = metadata.format,
+			.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+			.Texture2D = {
+				.MostDetailedMip = 0,
+				.MipLevels = 1,
+				.PlaneSlice = 0,
+				.ResourceMinLODClamp = 0.0f,
+			},
+		};
+
+		implementation->view = textureView;
+		device->CreateShaderResourceView(implementation->texture.Get(), &shaderResourceDesc, implementation->view);
+		std::println("\t\t\tShader resource view created");
+
+		VERIFY_COM(PrepareUpload(device.Get(), implementation->image.GetImages(), implementation->image.GetImageCount(), implementation->image.GetMetadata(), implementation->subresources));
 		std::println("\t\t\tTexture prepared for upload");
 
-		const uint64_t uploadBufferSize = GetRequiredIntermediateSize(implementation->texture.Get(), 0, static_cast<uint32_t>(subresources.size()));
+		const uint64_t uploadBufferSize = GetRequiredIntermediateSize(implementation->texture.Get(), 0, static_cast<uint32_t>(implementation->subresources.size()));
 		std::println("\t\t\tRequired buffer size acquired: {}", uploadBufferSize);
 
-		auto uploadHeapProperties = memory::getUploadHeapProperties();
 		auto uploadBufferDesc = CD3DX12_RESOURCE_DESC1::Buffer(uploadBufferSize);
-		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(implementation->stagingBuffer.GetAddressOf())));
+		VERIFY_COM(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(implementation->buffer.GetAddressOf())));
 		std::println("\t\t\tTexture upload heap created");
+	}
 
-		auto commandList = getCommandList();
-		UpdateSubresources(commandList.Get(), implementation->texture.Get(), implementation->stagingBuffer.Get(), 0, 0, static_cast<uint32_t>(subresources.size()), subresources.data());
+	void Texture::recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		UpdateSubresources(commandList.Get(), implementation->texture.Get(), implementation->buffer.Get(), 0, 0, static_cast<uint32_t>(implementation->subresources.size()), implementation->subresources.data());
 		std::println("\t\t\tTexture uploaded command recorded");
 
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

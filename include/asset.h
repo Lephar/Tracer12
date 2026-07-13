@@ -2,13 +2,13 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::content {
+namespace tracer::content {
 	class Asset {
 	private:
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Asset(const char* folder, const char* name);
+		Asset(const char* folder, const char* file);
 
 		Asset(const Asset& asset) = delete;
 		Asset& operator=(const Asset& asset) = delete;
@@ -16,7 +16,7 @@ namespace tracer::graphics::content {
 		Asset(Asset&& asset) noexcept;
 		Asset& operator=(Asset&& asset) noexcept;
 
-		void draw();
+		//void draw();
 
 		~Asset();
 	};

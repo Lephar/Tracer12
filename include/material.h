@@ -2,12 +2,14 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::content {
+namespace tracer::content {
 	class Material {
 	private:
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
+		static uint32_t getTextureCount();
+
 		Material(const char* folder, cgltf_material* data);
 
 		Material(const Material& material) = delete;
