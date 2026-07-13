@@ -5,13 +5,13 @@
 #include "content.h"
 #include "graphics.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::content {
 	struct Primitive::Implementation {
-		cgltf_size indexBegin;
-		cgltf_size indexCount;
-		cgltf_size vertexOffset;
+		uint64_t indexBegin;
+		uint64_t indexCount;
+		uint64_t vertexOffset;
 	};
 
 	Primitive::Primitive(cgltf_primitive* data) : implementation(std::make_unique<Implementation>()) {
@@ -28,7 +28,7 @@ namespace tracer::content {
 		void* indexData = reinterpret_cast<uint8_t*>(indexBuffer->data) + indexView->offset + indexAccessor->offset;
 
 		implementation->indexCount = indexAccessor->count;
-		std::println("\t\t\t\t{} INDEX", indexAccessor->count);
+		debug::print("%lu INDEX", implementation->indexCount);
 
 		if (indexAccessor->component_type == cgltf_component_type_r_16 || indexAccessor->component_type == cgltf_component_type_r_16u) {
 			auto indexDataShort = reinterpret_cast<uint16_t*>(indexData);
@@ -60,11 +60,11 @@ namespace tracer::content {
 				vertices.resize(implementation->vertexOffset + attributeAccessor->count);
 			}
 
-			VERIFY(vertices.size() == implementation->vertexOffset + attributeAccessor->count);
-			std::println("\t\t\t\t{} {}[{}]", attributeAccessor->count, attribute.name, numComponents);
+			debug::verify::positive(vertices.size() == implementation->vertexOffset + attributeAccessor->count);
+			debug::print("%lu %s[%lu]", attributeAccessor->count, attribute.name, numComponents);
 
 			if (attribute.type == cgltf_attribute_type_position) {
-				VERIFY(numComponents == 3);
+				debug::verify::positive(numComponents == 3);
 				auto positions = reinterpret_cast<DirectX::SimpleMath::Vector3*>(attributeData);
 
 				for (cgltf_size positionIndex = 0; positionIndex < attributeAccessor->count; positionIndex++) {
@@ -73,7 +73,7 @@ namespace tracer::content {
 				}
 			}
 			else if (attribute.type == cgltf_attribute_type_tangent) {
-				VERIFY(numComponents == 4);
+				debug::verify::positive(numComponents == 4);
 				auto tangents = reinterpret_cast<DirectX::SimpleMath::Vector4*>(attributeData);
 
 				for (cgltf_size tangentIndex = 0; tangentIndex < attributeAccessor->count; tangentIndex++) {
@@ -81,7 +81,7 @@ namespace tracer::content {
 				}
 			}
 			else if (attribute.type == cgltf_attribute_type_normal) {
-				VERIFY(numComponents == 3);
+				debug::verify::positive(numComponents == 3);
 				auto normals = reinterpret_cast<DirectX::SimpleMath::Vector3*>(attributeData);
 
 				for (cgltf_size normalIndex = 0; normalIndex < attributeAccessor->count; normalIndex++) {
@@ -90,7 +90,7 @@ namespace tracer::content {
 				}
 			} /*
 			else if (attribute.type == cgltf_attribute_type_color) {
-				VERIFY(numComponents == 3 || numComponents == 4);
+				debug::verify::positive(numComponents == 3 || numComponents == 4);
 
 				if (numComponents == 3) {
 					auto colors = reinterpret_cast<DirectX::SimpleMath::Vector3*>(attributeData);
@@ -110,7 +110,7 @@ namespace tracer::content {
 				}
 			} */
 			else if (attribute.type == cgltf_attribute_type_texcoord) {
-				VERIFY(numComponents == 2);
+				debug::verify::positive(numComponents == 2);
 				auto texcoords = reinterpret_cast<DirectX::SimpleMath::Vector2*>(attributeData);
 
 				if (std::string(attribute.name).compare("TEXCOORD_0") == 0) {

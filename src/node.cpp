@@ -4,6 +4,8 @@
 
 #include "content.h"
 
+#include "debug.h"
+
 namespace tracer::content {
 	struct Node::Implementation {
 		std::optional<cgltf_size> cameraIndex;
@@ -14,7 +16,8 @@ namespace tracer::content {
 	};
 
 	Node::Node(cgltf_node* data) : implementation(std::make_unique<Implementation>()) {
-		std::println("\tNode name: {}", data->name);
+		debug::print("Node: %s", data->name);
+		debug::incrementDepth();
 
 		implementation->cameraIndex = {};
 		implementation->lightIndex = {};
@@ -28,9 +31,14 @@ namespace tracer::content {
 			meshes.emplace_back(data->mesh, transform);
 		}
 
+		implementation->children.reserve(data->children_count);
+
 		for (cgltf_size childIndex = 0; childIndex < data->children_count; childIndex++) {
-			implementation->children.emplace_back(data->children[childIndex]);
+			cgltf_node* childData = data->children[childIndex];
+			implementation->children.emplace_back(childData);
 		}
+
+		debug::decrementDepth();
 	}
 
 	Node::Node(Node&& node) noexcept : implementation(std::move(node.implementation)) {}

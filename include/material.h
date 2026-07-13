@@ -10,7 +10,7 @@ namespace tracer::content {
 	public:
 		static uint32_t getTextureCount();
 
-		Material(const char* folder, cgltf_material* data);
+		Material(std::filesystem::path folder, cgltf_material* data);
 
 		Material(const Material& material) = delete;
 		Material& operator=(const Material& material) = delete;

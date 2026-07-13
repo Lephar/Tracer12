@@ -2,7 +2,7 @@
 
 #include "system.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::system {
 	namespace {
@@ -71,18 +71,21 @@ namespace tracer::system {
 	}
 
 	void initialize(const char* windowTitle) {
+		debug::print("Initializing system:");
+		debug::incrementDepth();
+
 		width = 800;
 		height = 600;
-		std::println("Window size set");
+		debug::print("Window size set");
 
 		title = windowTitle;
-		std::println("Window title set");
+		debug::print("Window title set");
 
-		VERIFY_COM(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
-		std::println("COM library initialized with multithread support");
+		debug::verify::com(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
+		debug::print("COM library initialized with multithread support");
 
-		VERIFY_WIN(GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &instance));
-		std::println("Instance handle acquired");
+		debug::verify::win(GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, nullptr, &instance));
+		debug::print("Instance handle acquired");
 
 		WNDCLASSEX windowClass = {
 			.cbSize = sizeof(WNDCLASSEX),
@@ -99,33 +102,35 @@ namespace tracer::system {
 			.hIconSm = LoadIcon(nullptr, IDI_APPLICATION)
 		};
 
-		VERIFY_WIN(RegisterClassEx(&windowClass));
-		std::println("Window class registered");
+		debug::verify::win(RegisterClassEx(&windowClass));
+		debug::print("Window class registered");
 
 		window = CreateWindowEx(0, title, title, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, instance, nullptr);
-		VERIFY_WIN(window);
-		std::println("Window created");
+		debug::verify::win(window);
+		debug::print("Window created");
 
-		VERIFY_NOT(ShowWindow(window, SW_SHOWDEFAULT));
-		std::println("Window shown");
+		debug::verify::negative(ShowWindow(window, SW_SHOWDEFAULT));
+		debug::print("Window shown");
 
-		VERIFY(UpdateWindow(window));
-		std::println("Window updated");
+		debug::verify::positive(UpdateWindow(window));
+		debug::print("Window updated");
 
 		RECT rect;
-		VERIFY_WIN(GetClientRect(window, &rect));
+		debug::verify::win(GetClientRect(window, &rect));
 		width = rect.right;
 		height = rect.bottom;
-		std::println("Window size: {}x{}", width, height);
+		debug::print("Window size: %ux%u", width, height);
 
 		mouse.SetWindow(window);
-		std::println("Mouse window set");
+		debug::print("Mouse window set");
 
 		mouse.SetMode(DirectX::Mouse::Mode::MODE_RELATIVE);
-		std::println("Mouse mode set to relative");
+		debug::print("Mouse mode set to relative");
 
 		dataFolder = std::filesystem::current_path() / "data";
-		std::println("Data folder set");
+		debug::print("Data folder set: %s", dataFolder.string().c_str());
+
+		debug::decrementDepth();
 	}
 
 	uint32_t getWidth() {
@@ -153,10 +158,10 @@ namespace tracer::system {
 	void aaaaaaaaaaaaaaaaaaa() {
 		mouseStateTracker.Reset();
 		keyboardStateTracker.Reset();
-		std::println("Mouse and keyboard state reset");
+		debug::print("Mouse and keyboard state reset");
 
 		timeCurrent = std::chrono::high_resolution_clock::now();
-		std::println("Current time saved");
+		debug::print("Current time saved");
 	}
 
 	bool poll() {

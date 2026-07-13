@@ -2,7 +2,7 @@
 
 #include "pipeline.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics {
 	struct Pipeline::Implementation {
@@ -11,6 +11,9 @@ namespace tracer::graphics {
 	};
 
 	Pipeline::Pipeline(Microsoft::WRL::ComPtr<ID3D12Device15> device, Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, DXGI_FORMAT depthStencilFormat, DXGI_FORMAT renderTargetFormat) : implementation(std::make_unique<Implementation>()) {
+		debug::print("Creating pipeline:");
+		debug::incrementDepth();
+		
 		D3D12_DESCRIPTOR_RANGE1 descriptorRange = {
 				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
 				.NumDescriptors = 1,
@@ -39,11 +42,11 @@ namespace tracer::graphics {
 			D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
 
 		Microsoft::WRL::ComPtr<ID3DBlob> rootSignature;
-		VERIFY_COM(D3D12SerializeVersionedRootSignature(&rootSignatureDesc, rootSignature.GetAddressOf(), nullptr));
-		std::println("Versioned root signature serialized");
+		debug::verify::com(D3D12SerializeVersionedRootSignature(&rootSignatureDesc, rootSignature.GetAddressOf(), nullptr));
+		debug::print("Versioned root signature serialized");
 
-		VERIFY_COM(device->CreateRootSignature(1, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
-		std::println("Root signature created");
+		debug::verify::com(device->CreateRootSignature(1, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
+		debug::print("Root signature created");
 
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{
@@ -115,8 +118,10 @@ namespace tracer::graphics {
 			},
 		};
 
-		VERIFY_COM(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineState.GetAddressOf())));
-		std::println("Graphics pipeline state object created");
+		debug::verify::com(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineState.GetAddressOf())));
+		debug::print("Graphics pipeline state object created");
+
+		debug::decrementDepth();
 	}
 	/*
 	void Pipeline::bind() {

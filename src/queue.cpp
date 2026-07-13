@@ -2,7 +2,7 @@
 
 #include "queue.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics::queue {
 	namespace {
@@ -16,6 +16,9 @@ namespace tracer::graphics::queue {
 	}
 
 	void initialize(Microsoft::WRL::ComPtr<ID3D12Device15> device) {
+		debug::print("Initializing queue:");
+		debug::incrementDepth();
+
 		D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {
 			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
 			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
@@ -23,25 +26,27 @@ namespace tracer::graphics::queue {
 			.NodeMask = 1,
 		};
 
-		VERIFY_COM(device->CreateCommandQueue1(&commandQueueDesc, {}, IID_PPV_ARGS(commandQueue.GetAddressOf())));
-		std::println("Direct command queue created");
+		debug::verify::com(device->CreateCommandQueue1(&commandQueueDesc, {}, IID_PPV_ARGS(commandQueue.GetAddressOf())));
+		debug::print("Direct command queue created");
 
-		VERIFY_COM(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
-		std::println("Debug command queue created from command queue");
+		debug::verify::com(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
+		debug::print("Debug command queue created from command queue");
 
-		VERIFY_COM(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
-		std::println("Direct command list created");
+		debug::verify::com(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
+		debug::print("Direct command list created");
 
-		VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
-		std::println("Command allocator created");
+		debug::verify::com(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
+		debug::print("Command allocator created");
 
 		fenceValue = 0;
-		VERIFY_COM(device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
-		std::println("Fence created and value set");
+		debug::verify::com(device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
+		debug::print("Fence created and value set");
 
 		fenceEvent = CreateEvent(nullptr, false, false, nullptr);
-		VERIFY_WIN(fenceEvent);
-		std::println("Fence event created");
+		debug::verify::win(fenceEvent);
+		debug::print("Fence event created");
+
+		debug::decrementDepth();
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue() {
@@ -53,33 +58,27 @@ namespace tracer::graphics::queue {
 	}
 
 	void begin() {
-		VERIFY_COM(commandAllocator->Reset());
-		VERIFY_COM(commandList->Reset(commandAllocator.Get(), nullptr));
-		std::println("Command allocator and list reset");
+		debug::verify::com(commandAllocator->Reset());
+		debug::verify::com(commandList->Reset(commandAllocator.Get(), nullptr));
 	}
 
 	void end() {
-		VERIFY_COM(commandList->Close());
-		std::println("Command list closed");
+		debug::verify::com(commandList->Close());
 	}
 
 	void execute() {
 		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
-		std::println("Commands sent for execution");
 	}
 
 	void signal() {
 		fenceValue++;
-		VERIFY_COM(commandQueue->Signal(fence.Get(), fenceValue));
-		std::println("Fence signal sent");
+		debug::verify::com(commandQueue->Signal(fence.Get(), fenceValue));
 	}
 
 	void wait() {
 		if (fence->GetCompletedValue() < fenceValue) {
-			VERIFY_COM(fence->SetEventOnCompletion(fenceValue, fenceEvent));
-			VERIFY_COM(WaitForSingleObject(fenceEvent, INFINITE));
+			debug::verify::com(fence->SetEventOnCompletion(fenceValue, fenceEvent));
+			debug::verify::com(WaitForSingleObject(fenceEvent, INFINITE));
 		}
-
-		std::println("Commands completed");
 	}
 }

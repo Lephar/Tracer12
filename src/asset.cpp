@@ -4,41 +4,43 @@
 
 #include "content.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::content {
 	struct Asset::Implementation {
-		cgltf_size materialOffset;
-
+		uint32_t materialOffset;
 		std::vector<Node> nodes;
 	};
 
 	Asset::Asset(const char* folder, const char* file) : implementation(std::make_unique<Implementation>()) {
-		std::println("Asset: {}\\{}", folder, file);
-		
-		auto path = getAssetFolder() / folder / file;
+		debug::print("Asset: %s\\%s", folder, file);
+		debug::incrementDepth();
+
+		auto folderPath = getAssetFolder() / folder;
+		auto filePath = folderPath / file;
 		
 		cgltf_data* data = nullptr;
 		cgltf_options options = {};
 
-		VERIFY_GLTF(cgltf_parse_file(&options, path.string().c_str(), &data));
-		std::println("\tFile parsed");
+		debug::verify::gltf(cgltf_parse_file(&options, filePath.string().c_str(), &data));
+		debug::print("File parsed");
 
-		VERIFY_GLTF(cgltf_validate(data));
-		std::println("\tAsset validated");
+		debug::verify::gltf(cgltf_validate(data));
+		debug::print("Asset validated");
 
-		VERIFY_GLTF(cgltf_load_buffers(&options, data, path.string().c_str()));
-		std::println("\tBuffers loaded");
+		debug::verify::gltf(cgltf_load_buffers(&options, data, filePath.string().c_str()));
+		debug::print("Buffers loaded");
 
 		auto& materials = getMaterials();
-		implementation->materialOffset = materials.size();
+		implementation->materialOffset = static_cast<uint32_t>(materials.size());
 
 		for (cgltf_size materialIndex = 0; materialIndex < data->materials_count; materialIndex++) {
 			cgltf_material* materialData = &data->materials[materialIndex];
-			materials.emplace_back(folder, materialData);
+			materials.emplace_back(folderPath, materialData);
 		}
 
 		auto& scene = data->scene;
+		implementation->nodes.reserve(scene->nodes_count);
 
 		for (cgltf_size nodeIndex = 0; nodeIndex < scene->nodes_count; nodeIndex++) {
 			cgltf_node* nodeData = scene->nodes[nodeIndex];
@@ -46,6 +48,8 @@ namespace tracer::content {
 		}
 
 		cgltf_free(data);
+
+		debug::decrementDepth();
 	}
 
 	Asset::Asset(Asset&& asset) noexcept : implementation(std::move(asset.implementation)) {}

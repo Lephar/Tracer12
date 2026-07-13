@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "content.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics {
 	struct FrameBuffer::Implementation {
@@ -26,7 +26,7 @@ namespace tracer::graphics {
 		implementation->commandAllocator = commandAllocator;
 		implementation->fence = fence;
 		implementation->fenceValue = 0;
-		std::println("\tFence value set");
+		debug::print("Fence value set");
 	}
 
 	FrameBuffer::FrameBuffer(FrameBuffer&& image) noexcept : implementation(std::move(image.implementation)) {}
@@ -39,21 +39,20 @@ namespace tracer::graphics {
 	void FrameBuffer::setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView) {
 		implementation->swapChainBuffer = swapChainBuffer;
 		implementation->renderTargetView = renderTargetView;
-		std::println("\tResources set");
 
 		implementation->renderBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->swapChainBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		std::println("\tRender barrier set");
+		debug::print("Render barrier set");
 
 		implementation->presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->swapChainBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		std::println("\tPresent barrier set");
+		debug::print("Present barrier set");
 	}
 	/*
 	void FrameBuffer::wait() {
 		if (implementation->fence->GetCompletedValue() < implementation->fenceValue) {
 			auto event = system::getEvent();
 
-			VERIFY_COM(implementation->fence->SetEventOnCompletion(implementation->fenceValue, event));
-			VERIFY_COM(WaitForSingleObject(event, INFINITE));
+			debug::verify::com(implementation->fence->SetEventOnCompletion(implementation->fenceValue, event));
+			debug::verify::com(WaitForSingleObject(event, INFINITE));
 		}
 	}
 
@@ -63,8 +62,8 @@ namespace tracer::graphics {
 
 		memcpy(implementation->constantBufferMemory, &constants, sizeof(constants));
 
-		VERIFY_COM(implementation->commandAllocator->Reset());
-		VERIFY_COM(commandList->Reset(implementation->commandAllocator.Get(), nullptr));
+		debug::verify::com(implementation->commandAllocator->Reset());
+		debug::verify::com(commandList->Reset(implementation->commandAllocator.Get(), nullptr));
 
 		commandList->ResourceBarrier(1, &implementation->renderBarrier);
 	}
@@ -87,13 +86,13 @@ namespace tracer::graphics {
 
 		commandList->ResourceBarrier(1, &implementation->presentBarrier);
 
-		VERIFY_COM(commandList->Close());
+		debug::verify::com(commandList->Close());
 	}
 
 	void FrameBuffer::signal() {
 		implementation->fenceValue++;
 
-		VERIFY_COM(getCommandQueue()->Signal(implementation->fence.Get(), implementation->fenceValue));
+		debug::verify::com(getCommandQueue()->Signal(implementation->fence.Get(), implementation->fenceValue));
 	}
 	*/
 	FrameBuffer::~FrameBuffer() = default;

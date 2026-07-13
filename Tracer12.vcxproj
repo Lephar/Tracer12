@@ -71,6 +71,7 @@
     <ClCompile Include="src\camera.cpp" />
     <ClCompile Include="src\compiler.cpp" />
     <ClCompile Include="src\content.cpp" />
+    <ClCompile Include="src\debug.cpp" />
     <ClCompile Include="src\device.cpp" />
     <ClCompile Include="src\implement.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
@@ -113,7 +114,7 @@
     <ClInclude Include="include\queue.h" />
     <ClInclude Include="include\texture.h" />
     <ClInclude Include="include\tracer.h" />
-    <ClInclude Include="include\verify.h" />
+    <ClInclude Include="include\debug.h" />
     <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\memory.h" />
     <ClInclude Include="include\numerics.h" />

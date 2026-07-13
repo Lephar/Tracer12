@@ -95,6 +95,9 @@
     <ClCompile Include="src\tracer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\debug.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pch.h">
@@ -103,7 +106,7 @@
     <ClInclude Include="include\graphics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\verify.h">
+    <ClInclude Include="include\debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\system.h">

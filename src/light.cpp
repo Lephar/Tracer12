@@ -2,13 +2,18 @@
 
 #include "light.h"
 
+#include "debug.h"
+
 namespace tracer::content {
 	struct Light::Implementation {
 		Constant constant;
 	};
 
 	Light::Light(cgltf_light* data) : implementation(std::make_unique<Implementation>()) {
-		std::println("\t\tLight name: {}", data->name);
+		debug::print("Light: %s", data->name);
+		debug::incrementDepth();
+
+		debug::decrementDepth();
 	}
 
 	Light::Light(Light&& light) noexcept : implementation(std::move(light.implementation)) {}

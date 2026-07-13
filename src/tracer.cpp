@@ -6,9 +6,13 @@
 #include "graphics.h"
 #include "content.h"
 
+#include "debug.h"
+
 namespace tracer {
 	namespace {
 		void initialize() {
+			debug::resetDepth();
+
 			system::initialize("Tracer");
 			
 			const auto dataFolder = system::getDataFolder();
@@ -23,10 +27,10 @@ namespace tracer {
 
 			content::load(dataFolder);
 
-			const auto materialCount = content::getMaterials().size();
+			const auto materialCount = static_cast<uint32_t>(content::getMaterials().size());
 			const auto materialTextureCount = content::getMaterialTextureCount();
 
-			graphics::createResources(static_cast<uint32_t>(materialCount), materialTextureCount);
+			graphics::createResources(materialCount, materialTextureCount);
 
 			const auto defaultHeapProperties = graphics::getDefaultHeapProperties();
 			const auto uploadHeapProperties = graphics::getUploadHeapProperties();

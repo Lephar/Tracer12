@@ -2,7 +2,7 @@
 
 #include "infrastructure.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics::infrastructure {
 	namespace {
@@ -11,17 +11,19 @@ namespace tracer::graphics::infrastructure {
 	}
 
 	void initialize() {
-		VERIFY_COM(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
-		std::println("DXGI factory created with debug mode enabled");
+		debug::print("Initializing infrastructure:");
+		debug::incrementDepth();
 
-		VERIFY_COM(factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(adapter.GetAddressOf())));
+		debug::verify::com(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
+		debug::print("DXGI factory created with debug mode enabled");
+
+		debug::verify::com(factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(adapter.GetAddressOf())));
 
 		DXGI_ADAPTER_DESC3 adapterDesc;
 		adapter->GetDesc3(&adapterDesc);
-		char adapterDescription[UCHAR_MAX];
-		wsprintf(adapterDescription, "%ws", adapterDesc.Description);
+		debug::print("High performance adapter %S selected", adapterDesc.Description);
 
-		std::println("High performance adapter {} selected", adapterDescription);
+		debug::decrementDepth();
 	}
 
 	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory() {

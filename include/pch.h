@@ -4,8 +4,11 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
+// CRT
+#include <cstdio>
+#include <cstdarg>
+
 // STL
-#include <print>
 #include <vector>
 #include <memory>
 #include <chrono>
@@ -32,5 +35,5 @@
 #include <Keyboard.h>
 #include <DirectXTex.h>
 
-// 3rd Party
+// External
 #include "cgltf/cgltf.h"

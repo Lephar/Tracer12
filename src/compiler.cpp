@@ -2,7 +2,7 @@
 
 #include "compiler.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics::compiler {
 	namespace {
@@ -15,21 +15,26 @@ namespace tracer::graphics::compiler {
 	}
 
 	void initialize(std::filesystem::path dataFolder) {
+		debug::print("Initializing compiler:");
+		debug::incrementDepth();
+		
 		shaderFolder = dataFolder / "shaders";
-		std::println("Shader folder set: {}", shaderFolder.string());
+		debug::print("Shader folder set: %s", shaderFolder.string().c_str());
 
-		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
-		std::println("Shader compiler created");
+		debug::verify::com(DxcCreateInstance2(nullptr, CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
+		debug::print("Shader compiler created");
 
-		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
-		std::println("Shader compilation utilities created");
+		debug::verify::com(DxcCreateInstance2(nullptr, CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
+		debug::print("Shader compilation utilities created");
 
 		arguments = {
 			DXC_ARG_DEBUG,
 			DXC_ARG_SKIP_OPTIMIZATIONS,
 			DXC_ARG_WARNINGS_ARE_ERRORS,
 		};
-		std::println("Shader compilation arguments set");
+		debug::print("Shader compilation arguments set");
+
+		debug::decrementDepth();
 	}
 
 	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler() {
@@ -45,20 +50,22 @@ namespace tracer::graphics::compiler {
 	}
 
 	Microsoft::WRL::ComPtr<IDxcBlob> loadShader(LPCWSTR name, LPCWSTR type, LPCWSTR entry) {
-		//std::println("Shader: {}", std::wstring(name));
+		debug::print("Shader: %S", name);
+		debug::incrementDepth();
+		
 		auto path = shaderFolder / name;
 
 		uint32_t codePage = DXC_CP_ACP;
 		Microsoft::WRL::ComPtr<IDxcBlobEncoding> code;
-		VERIFY_COM(utils->LoadFile(path.wstring().c_str(), &codePage, code.GetAddressOf()));
-		std::println("\tFile loaded: {} bytes", code->GetBufferSize());
+		debug::verify::com(utils->LoadFile(path.wstring().c_str(), &codePage, code.GetAddressOf()));
+		debug::print("File loaded: %lu bytes", code->GetBufferSize());
 
 		Microsoft::WRL::ComPtr<IDxcCompilerArgs> args;
-		VERIFY_COM(utils->BuildArguments(name, entry, type, arguments.data(), static_cast<uint32_t>(arguments.size()), nullptr, 0, args.GetAddressOf()));
-		std::println("\tCompilation arguments built");
+		debug::verify::com(utils->BuildArguments(name, entry, type, arguments.data(), static_cast<uint32_t>(arguments.size()), nullptr, 0, args.GetAddressOf()));
+		debug::print("Compilation arguments built");
 
 		BOOL encodingKnown = false;
-		VERIFY_COM(code->GetEncoding(&encodingKnown, &codePage));
+		debug::verify::com(code->GetEncoding(&encodingKnown, &codePage));
 
 		DxcText text = {
 			.Ptr = code->GetBufferPointer(),
@@ -67,15 +74,17 @@ namespace tracer::graphics::compiler {
 		};
 
 		Microsoft::WRL::ComPtr<IDxcResult> result;
-		VERIFY_COM(compiler->Compile(&text, args->GetArguments(), args->GetCount(), nullptr, IID_PPV_ARGS(result.GetAddressOf())));
-		std::println("\tShader compiled");
+		debug::verify::com(compiler->Compile(&text, args->GetArguments(), args->GetCount(), nullptr, IID_PPV_ARGS(result.GetAddressOf())));
+		debug::print("Shader compiled");
 
-		VERIFY_SHADER(result);
-		std::println("\tResult checked");
+		debug::verify::dxc(result);
+		debug::print("Result checked");
 
 		Microsoft::WRL::ComPtr<IDxcBlob> byteCode;
-		VERIFY_COM(result->GetOutput(result->PrimaryOutput(), IID_PPV_ARGS(byteCode.GetAddressOf()), nullptr));
-		std::println("\tOutput retrieved");
+		debug::verify::com(result->GetOutput(result->PrimaryOutput(), IID_PPV_ARGS(byteCode.GetAddressOf()), nullptr));
+		debug::print("Output retrieved");
+
+		debug::decrementDepth();
 
 		return byteCode;
 	}

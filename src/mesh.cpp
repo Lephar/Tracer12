@@ -4,28 +4,37 @@
 
 #include "content.h"
 
+#include "debug.h"
+
 namespace tracer::content {
 	struct Mesh::Implementation {
-		cgltf_size constantIndex;
-		cgltf_size primitiveBegin;
-		cgltf_size primitiveCount;
+		uint32_t constantIndex;
+		uint32_t primitiveBegin;
+		uint32_t primitiveCount;
 	};
 
 	Mesh::Mesh(cgltf_mesh* data, cgltf_float* transform) : implementation(std::make_unique<Implementation>()) {
-		std::println("\t\tMesh name: {}", data->name);
+		debug::print("Mesh: %s", data->name);
+		debug::incrementDepth();
 
 		auto& constants = getMeshConstants();
 		auto& primitives = getPrimitives();
 
-		implementation->constantIndex = constants.size();
-		implementation->primitiveBegin = primitives.size();
-		implementation->primitiveCount = data->primitives_count;
+		implementation->constantIndex = static_cast<uint32_t>(constants.size());
+		implementation->primitiveBegin = static_cast<uint32_t>(primitives.size());
+		implementation->primitiveCount = static_cast<uint32_t>(data->primitives_count);
 
 		for (uint32_t primitiveIndex = 0; primitiveIndex < implementation->primitiveCount; primitiveIndex++) {
+			debug::print("Primitive: %u", primitiveIndex);
+			debug::incrementDepth();
+
 			cgltf_primitive* primitiveData = &data->primitives[primitiveIndex];
-			std::println("\t\t\tPrimitive {}", primitiveIndex);
 			primitives.emplace_back(primitiveData);
+		
+			debug::decrementDepth();
 		}
+
+		debug::decrementDepth();
 	}
 
 	Mesh::Mesh(Mesh&& mesh) noexcept : implementation(std::move(mesh.implementation)) {}

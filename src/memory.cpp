@@ -2,7 +2,7 @@
 
 #include "memory.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics::memory {
 	namespace {
@@ -15,22 +15,27 @@ namespace tracer::graphics::memory {
 	}
 
 	void allocate(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t imageCount, uint32_t materialCount, uint32_t materialTextureCount) {
+		debug::print("Allocating memory:");
+		debug::incrementDepth();
+
 		auto shaderResourceCount = materialCount * materialTextureCount;
 
 		defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		std::println("Default heap properties set");
+		debug::print("Default heap properties set");
 
 		uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		std::println("Upload heap properties set");
+		debug::print("Upload heap properties set");
 
 		depthStencilDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
-		std::println("Depth stencil descriptor heap created with size 1");
+		debug::print("Depth stencil descriptor heap created with size 1");
 
 		renderTargetDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, imageCount);
-		std::println("Render target descriptor heap created with size {}", imageCount);
+		debug::print("Render target descriptor heap created with size %u", imageCount);
 
 		shaderResourceDescriptorHeap = std::make_shared<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, shaderResourceCount);
-		std::println("Shader resource descriptor heap created with size {}", shaderResourceCount);
+		debug::print("Shader resource descriptor heap created with size %u", shaderResourceCount);
+
+		debug::decrementDepth();
 	}
 
 	D3D12_HEAP_PROPERTIES getDefaultHeapProperties() {

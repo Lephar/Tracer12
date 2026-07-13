@@ -2,12 +2,17 @@
 
 #include "camera.h"
 
+#include "debug.h"
+
 namespace tracer::content {
 	struct Camera::Implementation {
 	};
 
 	Camera::Camera(cgltf_camera* data) : implementation(std::make_unique<Implementation>()) {
-		std::println("\t\tCamera name: {}", data->name);
+		debug::print("Camera: %s", data->name);
+		debug::incrementDepth();
+
+		debug::decrementDepth();
 	}
 	/*
 	void aaaaaaaaaa() {
@@ -18,7 +23,7 @@ namespace tracer::content {
 
 		projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, farPlane, nearPlane);
 
-		std::println("Projection matrix generated");
+		debug::print("Projection matrix generated");
 	}
 	*/
 	Camera::Camera(Camera&& camera) noexcept : implementation(std::move(camera.implementation)) {}

@@ -3,7 +3,7 @@
 #include "swapChain.h"
 #include "frameBuffer.h"
 
-#include "verify.h"
+#include "debug.h"
 
 namespace tracer::graphics::swapChain {
 	namespace {
@@ -40,12 +40,15 @@ namespace tracer::graphics::swapChain {
 		DXGI_FORMAT swapChainDepthStencilFormat,
 		DXGI_FORMAT swapChainRenderTargetFormat
 	) {
+		debug::print("Initializing swap chain:");
+		debug::incrementDepth();
+
 		width = swapChainWidth;
 		height = swapChainHeight;
 		imageCount = swapChainImageCount;
 		depthStencilFormat = swapChainDepthStencilFormat;
 		renderTargetFormat = swapChainRenderTargetFormat;
-		std::println("Swap chain properties set");
+		debug::print("Swap chain properties set");
 
 		viewport = {
 			.TopLeftX = 0,
@@ -63,7 +66,7 @@ namespace tracer::graphics::swapChain {
 			.bottom = static_cast<long>(height),
 		};
 
-		std::println("Viewport and scissor set");
+		debug::print("Viewport and scissor set");
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {
 			.Width = width,
@@ -81,24 +84,28 @@ namespace tracer::graphics::swapChain {
 			.Windowed = true,
 		};
 
-		VERIFY_COM(factory->CreateSwapChainForHwnd(queue.Get(), window, &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
-		std::println("Swap chain created with {} images", imageCount);
+		debug::verify::com(factory->CreateSwapChainForHwnd(queue.Get(), window, &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
+		debug::print("Swap chain created with %u images", imageCount);
 		
 		frameBuffers.reserve(imageCount);
-
+		
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
-			std::println("Swap chain image {}:", imageIndex);
+			debug::print("Frame buffer %u:", imageIndex);
+			debug::incrementDepth();
 
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-			VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
-			std::println("\tCommand allocator created");
+			debug::verify::com(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
+			debug::print("Command allocator created");
 
 			Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
-			VERIFY_COM(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
-			std::println("\tFence created");
+			debug::verify::com(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
+			debug::print("Fence created");
 
 			frameBuffers.emplace_back(commandAllocator, fence);
+			debug::decrementDepth();
 		}
+
+		debug::decrementDepth();
 	}
 
 	uint32_t getImageCount() {
@@ -119,6 +126,9 @@ namespace tracer::graphics::swapChain {
 		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap,
 		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap
 	) {
+		debug::print("Creating swap chain resources:");
+		debug::incrementDepth();
+
 		auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
@@ -129,8 +139,8 @@ namespace tracer::graphics::swapChain {
 			},
 		};
 
-		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
-		std::println("Depth stencil buffer created on default heap");
+		debug::verify::com(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
+		debug::print("Depth stencil buffer created on default heap");
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {
 			.Format = depthStencilFormat,
@@ -140,22 +150,27 @@ namespace tracer::graphics::swapChain {
 
 		depthStencilView = depthStencilDescriptorHeap->GetFirstCpuHandle();
 		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, depthStencilView);
-		std::println("Depth stencil view created");
+		debug::print("Depth stencil view created");
 
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
+			debug::print("Frame buffer %u:", imageIndex);
+			debug::incrementDepth();
+
 			auto& frameBuffer = frameBuffers.at(imageIndex);
-			std::println("Swap chain image {}:", imageIndex);
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
-			VERIFY_COM(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
-			std::println("\tSwap chain buffer acquired");
+			debug::verify::com(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
+			debug::print("Swap chain buffer acquired");
 
 			auto renderTargetView = renderTargetDescriptorHeap->GetCpuHandle(imageIndex);
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
-			std::println("\tRender target view created");
+			debug::print("Render target view created");
 
 			frameBuffer.setResources(renderTargetBuffer, renderTargetView);
+			debug::decrementDepth();
 		}
+
+		debug::decrementDepth();
 	}
 	/*
 	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
@@ -183,7 +198,7 @@ namespace tracer::graphics::swapChain {
 		frameBuffers.at(imageIndex).signal();
 
 		DXGI_PRESENT_PARAMETERS presentParameters = {};
-		VERIFY_COM(swapChain->Present1(0, 0, &presentParameters));
+		debug::verify::com(swapChain->Present1(0, 0, &presentParameters));
 	}
 
 	void destroy() {
