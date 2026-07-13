@@ -6,13 +6,9 @@
 #include "graphics.h"
 #include "content.h"
 
-#include "debug.h"
-
 namespace tracer {
 	namespace {
 		void initialize() {
-			debug::resetDepth();
-
 			system::initialize("Tracer");
 			
 			const auto dataFolder = system::getDataFolder();

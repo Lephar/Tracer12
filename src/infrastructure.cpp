@@ -14,8 +14,8 @@ namespace tracer::graphics::infrastructure {
 		debug::print("Initializing infrastructure:");
 		debug::incrementDepth();
 
-		debug::verify::com(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
-		debug::print("DXGI factory created with debug mode enabled");
+		debug::verify::com(CreateDXGIFactory2(debug::enabled ? DXGI_CREATE_FACTORY_DEBUG : 0, IID_PPV_ARGS(factory.GetAddressOf())));
+		debug::print("DXGI factory created %s", debug::enabled ? "with debug mode enabled" : "");
 
 		debug::verify::com(factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(adapter.GetAddressOf())));
 

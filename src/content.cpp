@@ -34,6 +34,8 @@ namespace tracer::content {
 	}
 
 	void load(std::filesystem::path dataFolder) {
+		debug::deactivate();
+
 		debug::print("Loading content:");
 		debug::incrementDepth();
 
@@ -43,6 +45,8 @@ namespace tracer::content {
 		assets.emplace_back("Sponza", "Sponza_Main.gltf");
 
 		debug::decrementDepth();
+
+		debug::activate();
 	}
 
 	std::filesystem::path getAssetFolder() {
@@ -102,6 +106,8 @@ namespace tracer::content {
 	}
 
 	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_HEAP_PROPERTIES defaultHeapProperties, D3D12_HEAP_PROPERTIES uploadHeapProperties, std::shared_ptr<DirectX::DescriptorHeap> shaderResourceDescriptorHeap) {
+		debug::deactivate();
+		
 		debug::print("Creating content resources:");
 		debug::incrementDepth();
 		
@@ -151,9 +157,13 @@ namespace tracer::content {
 		debug::print("Vertex buffer view set");
 
 		debug::decrementDepth();
+
+		debug::activate();
 	}
 
 	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		debug::deactivate();
+
 		debug::print("Recording content upload:");
 		debug::incrementDepth();
 
@@ -197,6 +207,8 @@ namespace tracer::content {
 		debug::print("Buffer barriers recorded");
 
 		debug::decrementDepth();
+
+		debug::activate();
 	}
 	/*
 	namespace {

@@ -4,16 +4,16 @@
 
 namespace tracer::debug {
 	namespace {
-#ifdef _DEBUG
-		const bool debug = true;
-#else
-		const bool debug = false;
-#endif
+		bool activated = true;
 		uint32_t depth = 0;
 	}
 
-	void resetDepth() {
-		depth = 0;
+	void activate() {
+		activated = true;
+	}
+
+	void deactivate() {
+		activated = false;
 	}
 
 	void incrementDepth() {
@@ -25,7 +25,7 @@ namespace tracer::debug {
 	}
 
 	void print(const char* fmt, ...) {
-		if (debug) {
+		if (enabled && activated) {
 			for (uint32_t index = 0; index < depth; index++) {
 				printf("\t");
 			}
@@ -42,7 +42,9 @@ namespace tracer::debug {
 	namespace verify {
 		void positive(bool result) {
 			if (!result) {
-				print("Failure");
+				if (enabled && activated) {
+					print("Failure");
+				}
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -53,17 +55,21 @@ namespace tracer::debug {
 
 		void win(bool result) {
 			if (!result) {
-				auto error = GetLastError();
-				char message[UCHAR_MAX] = {};
-				positive(FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), message, UCHAR_MAX, nullptr));
-				print("%s", message);
+				if (enabled && activated) {
+					auto error = GetLastError();
+					char message[UCHAR_MAX] = {};
+					positive(FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), message, UCHAR_MAX, nullptr));
+					print("%s", message);
+				}
 				exit(EXIT_FAILURE);
 			}
 		}
 
 		void com(HRESULT result) {
 			if (FAILED(result)) {
-				print("%s", _com_error(result).ErrorMessage());
+				if (enabled && activated) {
+					print("%s", _com_error(result).ErrorMessage());
+				}
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -73,41 +79,45 @@ namespace tracer::debug {
 			com(result->GetStatus(&status));
 
 			if (FAILED(status)) {
-				Microsoft::WRL::ComPtr<IDxcBlobEncoding> message = nullptr;
-				com(result->GetErrorBuffer(message.GetAddressOf()));
-				print("%s", message->GetBufferPointer());
+				if (enabled && activated) {
+					Microsoft::WRL::ComPtr<IDxcBlobEncoding> message = nullptr;
+					com(result->GetErrorBuffer(message.GetAddressOf()));
+					print("%s", message->GetBufferPointer());
+				}
 				exit(EXIT_FAILURE);
 			}
 		}
 
 		void gltf(cgltf_result result) {
 			if (result != cgltf_result_success) {
-				if (result == cgltf_result_data_too_short) {
-					print("Data too short");
-				}
-				else if (result == cgltf_result_unknown_format) {
-					print("Unknown format");
-				}
-				else if (result == cgltf_result_invalid_json) {
-					print("Invalid JSON");
-				}
-				else if (result == cgltf_result_invalid_gltf) {
-					print("Invalid glTF");
-				}
-				else if (result == cgltf_result_invalid_options) {
-					print("Invalid options");
-				}
-				else if (result == cgltf_result_file_not_found) {
-					print("File not found");
-				}
-				else if (result == cgltf_result_io_error) {
-					print("IO error");
-				}
-				else if (result == cgltf_result_out_of_memory) {
-					print("Out of memory");
-				}
-				else if (result == cgltf_result_legacy_gltf) {
-					print("Legacy glTF");
+				if (enabled && activated) {
+					if (result == cgltf_result_data_too_short) {
+						print("Data too short");
+					}
+					else if (result == cgltf_result_unknown_format) {
+						print("Unknown format");
+					}
+					else if (result == cgltf_result_invalid_json) {
+						print("Invalid JSON");
+					}
+					else if (result == cgltf_result_invalid_gltf) {
+						print("Invalid glTF");
+					}
+					else if (result == cgltf_result_invalid_options) {
+						print("Invalid options");
+					}
+					else if (result == cgltf_result_file_not_found) {
+						print("File not found");
+					}
+					else if (result == cgltf_result_io_error) {
+						print("IO error");
+					}
+					else if (result == cgltf_result_out_of_memory) {
+						print("Out of memory");
+					}
+					else if (result == cgltf_result_legacy_gltf) {
+						print("Legacy glTF");
+					}
 				}
 				exit(EXIT_FAILURE);
 			}

@@ -29,8 +29,10 @@ namespace tracer::graphics::queue {
 		debug::verify::com(device->CreateCommandQueue1(&commandQueueDesc, {}, IID_PPV_ARGS(commandQueue.GetAddressOf())));
 		debug::print("Direct command queue created");
 
-		debug::verify::com(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
-		debug::print("Debug command queue created from command queue");
+		if (debug::enabled) {
+			debug::verify::com(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
+			debug::print("Debug command queue created from command queue");
+		}
 
 		debug::verify::com(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
 		debug::print("Direct command list created");

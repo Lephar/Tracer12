@@ -21,33 +21,37 @@ namespace tracer::graphics::device {
 	void initialize(Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter) {
 		debug::print("Initializing device:");
 		debug::incrementDepth();
+		
+		if (debug::enabled) {
+			debug::verify::com(D3D12GetDebugInterface(IID_PPV_ARGS(debug.GetAddressOf())));
+			debug::print("Debug controller acquired");
 
-		debug::verify::com(D3D12GetDebugInterface(IID_PPV_ARGS(debug.GetAddressOf())));
-		debug::print("Debug controller acquired");
+			debug->EnableDebugLayer();
+			debug::print("Debug layers enabled");
 
-		debug->EnableDebugLayer();
-		debug::print("Debug layers enabled");
+			debug->SetEnableGPUBasedValidation(true);
+			debug::print("GPU based validations enabled");
 
-		debug->SetEnableGPUBasedValidation(true);
-		debug::print("GPU based validations enabled");
+			debug->SetEnableSynchronizedCommandQueueValidation(true);
+			debug::print("Synchronized command queue validations enabled");
 
-		debug->SetEnableSynchronizedCommandQueueValidation(true);
-		debug::print("Synchronized command queue validations enabled");
-
-		debug->SetEnableAutoName(true);
-		debug::print("Device objects auto naming enabled");
+			debug->SetEnableAutoName(true);
+			debug::print("Device objects auto naming enabled");
+		}
 
 		debug::verify::com(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(device.GetAddressOf())));
 		debug::print("Device created with feature level 12.2");
 
-		debug::verify::com(device->QueryInterface(IID_PPV_ARGS(debugDevice.GetAddressOf())));
-		debug::print("Debug device created from device");
+		if (debug::enabled) {
+			debug::verify::com(device->QueryInterface(IID_PPV_ARGS(debugDevice.GetAddressOf())));
+			debug::print("Debug device created from device");
 
-		debug::verify::com(device->QueryInterface(IID_PPV_ARGS(infoQueue.GetAddressOf())));
-		debug::print("Info queue created from device");
+			debug::verify::com(device->QueryInterface(IID_PPV_ARGS(infoQueue.GetAddressOf())));
+			debug::print("Info queue created from device");
 
-		debug::verify::com(infoQueue->RegisterMessageCallback(CallbackFunc, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie));
-		debug::print("Debug message callback registered");
+			debug::verify::com(infoQueue->RegisterMessageCallback(CallbackFunc, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie));
+			debug::print("Debug message callback registered");
+		}
 
 		debug::decrementDepth();
 	}

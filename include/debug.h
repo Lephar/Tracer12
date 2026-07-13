@@ -3,7 +3,15 @@
 #include "pch.h"
 
 namespace tracer::debug {
-	void resetDepth();
+#ifdef _DEBUG
+	constexpr bool enabled = true;
+#else
+	constexpr bool enabled = false;
+#endif
+
+	void activate();
+	void deactivate();
+
 	void incrementDepth();
 	void decrementDepth();
 
