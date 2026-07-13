@@ -1,49 +1,51 @@
 #include "pch.h"
 
 #include "swapChain.h"
-#include "swapChainImage.h"
-
-#include "system.h"
-#include "graphics.h"
-#include "memory.h"
-#include "content.h"
+#include "frameBuffer.h"
 
 #include "verify.h"
 
 namespace tracer::graphics::swapChain {
 	namespace {
-		const uint32_t imageCount = 3;
+		uint32_t width = 0;
+		uint32_t height = 0;
 
-		const DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
-		const DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+		uint32_t imageCount = 0;
+
+		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
+		DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_UNKNOWN;
 
 		D3D12_VIEWPORT viewport = {};
 		D3D12_RECT scissor = {};
+
+		DirectX::SimpleMath::Matrix projection;
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> depthStencilBuffer = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = {};
 
-		std::vector<Image> images = {};
+		std::vector<FrameBuffer> frameBuffers = {};
 
 		uint32_t imageIndex = UINT32_MAX;
 	}
 
-	const uint32_t getImageCount() {
-		return imageCount;
-	}
-
-	const DXGI_FORMAT getDepthStencilFormat() {
-		return depthStencilFormat;
-	}
-
-	const DXGI_FORMAT getRenderTargetFormat() {
-		return renderTargetFormat;
-	}
-
-	void initialize() {
-		const auto width = system::getWidth();
-		const auto height = system::getHeight();
+	void initialize(
+		HWND window,
+		Microsoft::WRL::ComPtr<IDXGIFactory7> factory,
+		Microsoft::WRL::ComPtr<ID3D12Device15> device,
+		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> queue,
+		uint32_t swapChainWidth,
+		uint32_t swapChainHeight,
+		uint32_t swapChainImageCount,
+		DXGI_FORMAT swapChainDepthStencilFormat,
+		DXGI_FORMAT swapChainRenderTargetFormat
+	) {
+		width = swapChainWidth;
+		height = swapChainHeight;
+		imageCount = swapChainImageCount;
+		depthStencilFormat = swapChainDepthStencilFormat;
+		renderTargetFormat = swapChainRenderTargetFormat;
+		std::println("Swap chain properties set");
 
 		viewport = {
 			.TopLeftX = 0,
@@ -61,6 +63,8 @@ namespace tracer::graphics::swapChain {
 			.bottom = static_cast<long>(height),
 		};
 
+		std::println("Viewport and scissor set");
+
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {
 			.Width = width,
 			.Height = height,
@@ -77,11 +81,44 @@ namespace tracer::graphics::swapChain {
 			.Windowed = true,
 		};
 
-		VERIFY_COM(getFactory()->CreateSwapChainForHwnd(getCommandQueue().Get(), system::getWindow(), &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
+		VERIFY_COM(factory->CreateSwapChainForHwnd(queue.Get(), window, &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
 		std::println("Swap chain created with {} images", imageCount);
+		
+		frameBuffers.reserve(imageCount);
 
-		auto device = getDevice();
+		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
+			std::println("Swap chain image {}:", imageIndex);
 
+			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
+			VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
+			std::println("\tCommand allocator created");
+
+			Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
+			VERIFY_COM(device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
+			std::println("\tFence created");
+
+			frameBuffers.emplace_back(commandAllocator, fence);
+		}
+	}
+
+	uint32_t getImageCount() {
+		return imageCount;
+	}
+
+	DXGI_FORMAT getDepthStencilFormat() {
+		return depthStencilFormat;
+	}
+
+	DXGI_FORMAT getRenderTargetFormat() {
+		return renderTargetFormat;
+	}
+
+	void createResources(
+		Microsoft::WRL::ComPtr<ID3D12Device15> device,
+		D3D12_HEAP_PROPERTIES defaultHeapProperties,
+		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap,
+		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap
+	) {
 		auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
@@ -92,8 +129,6 @@ namespace tracer::graphics::swapChain {
 			},
 		};
 
-		auto defaultHeapProperties = memory::getDefaultHeapProperties();
-
 		VERIFY_COM(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
 		std::println("Depth stencil buffer created on default heap");
 
@@ -103,53 +138,36 @@ namespace tracer::graphics::swapChain {
 			.Flags = D3D12_DSV_FLAG_NONE,
 		};
 
-		depthStencilView = memory::getDepthStencilDescriptorHeap()->GetFirstCpuHandle();
+		depthStencilView = depthStencilDescriptorHeap->GetFirstCpuHandle();
 		device->CreateDepthStencilView(depthStencilBuffer.Get(), &depthStencilViewDesc, depthStencilView);
 		std::println("Depth stencil view created");
 
-		auto constantBufferDescriptorHeap = memory::getConstantBufferDescriptorHeap();
-		const auto constantBufferAlignment = content::getConstantBufferAlignment();
-
-		images.reserve(imageCount);
-
 		for (uint32_t imageIndex = 0; imageIndex < imageCount; imageIndex++) {
+			auto& frameBuffer = frameBuffers.at(imageIndex);
 			std::println("Swap chain image {}:", imageIndex);
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
 			VERIFY_COM(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
 			std::println("\tSwap chain buffer acquired");
 
-			auto renderTargetView = memory::getRenderTargetDescriptorHeap()->GetCpuHandle(imageIndex);
+			auto renderTargetView = renderTargetDescriptorHeap->GetCpuHandle(imageIndex);
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			std::println("\tRender target view created");
 
-			const auto constantBufferOffset = imageIndex * constantBufferAlignment;
-
-			D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferViewDesc = {
-				.BufferLocation = content::getConstantBuffer()->GetGPUVirtualAddress() + constantBufferOffset,
-				.SizeInBytes = constantBufferAlignment,
-			};
-
-			auto constantBufferHostView = constantBufferDescriptorHeap->GetCpuHandle(imageIndex);
-			device->CreateConstantBufferView(&constantBufferViewDesc, constantBufferHostView);
-			std::println("\tConstant buffer view created");
-
-			auto constantBufferDeviceView = constantBufferDescriptorHeap->GetGpuHandle(imageIndex);
-			std::println("\tConstant buffer device descriptor handle acquired");
-
-			auto constantBufferMemory = reinterpret_cast<uint8_t*>(content::getConstantBufferMemory()) + constantBufferOffset;
-			std::println("\tConstant buffer memory set with offset");
-		
-			images.emplace_back(renderTargetBuffer, renderTargetView, constantBufferHostView, constantBufferDeviceView, constantBufferMemory);
+			frameBuffer.setResources(renderTargetBuffer, renderTargetView);
 		}
 	}
-
-	void begin() {
+	/*
+	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		imageIndex = swapChain->GetCurrentBackBufferIndex();
-		auto& image = images.at(imageIndex);
+		auto& image = frameBuffers.at(imageIndex);
 
 		image.wait();
 		image.begin();
+	}
+
+	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		frameBuffers.at(imageIndex).end();
 	}
 
 	void bind() {
@@ -158,26 +176,23 @@ namespace tracer::graphics::swapChain {
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissor);
 
-		images.at(imageIndex).bind(depthStencilView);
-	}
-
-	void end() {
-		images.at(imageIndex).end();
+		frameBuffers.at(imageIndex).bind(depthStencilView);
 	}
 
 	void present() {
-		images.at(imageIndex).signal();
+		frameBuffers.at(imageIndex).signal();
 
 		DXGI_PRESENT_PARAMETERS presentParameters = {};
 		VERIFY_COM(swapChain->Present1(0, 0, &presentParameters));
 	}
 
 	void destroy() {
-		for (auto& image : images) {
+		for (auto& image : frameBuffers) {
 			image.signal();
 		}
-		for (auto& image : images) {
+		for (auto& image : frameBuffers) {
 			image.wait();
 		}
 	}
+	*/
 }

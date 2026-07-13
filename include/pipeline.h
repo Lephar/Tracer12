@@ -9,7 +9,7 @@ namespace tracer::graphics {
 		std::unique_ptr<Implementation> implementation;
 
 	public:
-		Pipeline(LPCWSTR vertexShaderName, LPCWSTR pixelShaderName);
+		Pipeline(Microsoft::WRL::ComPtr<ID3D12Device15> device, Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, DXGI_FORMAT depthStencilFormat, DXGI_FORMAT renderTargetFormat);
 
 		Pipeline(const Pipeline& pipeline) = delete;
 		Pipeline& operator=(const Pipeline& pipeline) = delete;
@@ -17,7 +17,7 @@ namespace tracer::graphics {
 		Pipeline(Pipeline&& pipeline) = delete;
 		Pipeline& operator=(Pipeline&& pipeline) = delete;
 
-		void bind();
+		//void bind();
 
 		~Pipeline();
 	};

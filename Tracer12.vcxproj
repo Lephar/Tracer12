@@ -68,14 +68,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\asset.cpp" />
+    <ClCompile Include="src\camera.cpp" />
+    <ClCompile Include="src\compiler.cpp" />
     <ClCompile Include="src\content.cpp" />
+    <ClCompile Include="src\device.cpp" />
     <ClCompile Include="src\implement.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\infrastructure.cpp" />
+    <ClCompile Include="src\light.cpp" />
     <ClCompile Include="src\material.cpp" />
     <ClCompile Include="src\mesh.cpp" />
     <ClCompile Include="src\node.cpp" />
     <ClCompile Include="src\primitive.cpp" />
+    <ClCompile Include="src\queue.cpp" />
     <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -85,30 +91,36 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\pipeline.cpp" />
-    <ClCompile Include="src\shader.cpp" />
     <ClCompile Include="src\swapChain.cpp" />
-    <ClCompile Include="src\swapChainImage.cpp" />
+    <ClCompile Include="src\frameBuffer.cpp" />
     <ClCompile Include="src\system.cpp" />
+    <ClCompile Include="src\tracer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\include\cgltf\cgltf.h" />
     <ClInclude Include="external\include\cgltf\cgltf_write.h" />
     <ClInclude Include="include\asset.h" />
+    <ClInclude Include="include\camera.h" />
+    <ClInclude Include="include\compiler.h" />
     <ClInclude Include="include\content.h" />
+    <ClInclude Include="include\device.h" />
+    <ClInclude Include="include\infrastructure.h" />
+    <ClInclude Include="include\light.h" />
     <ClInclude Include="include\material.h" />
     <ClInclude Include="include\mesh.h" />
     <ClInclude Include="include\node.h" />
     <ClInclude Include="include\primitive.h" />
+    <ClInclude Include="include\queue.h" />
     <ClInclude Include="include\texture.h" />
+    <ClInclude Include="include\tracer.h" />
     <ClInclude Include="include\verify.h" />
     <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\memory.h" />
     <ClInclude Include="include\numerics.h" />
     <ClInclude Include="include\pch.h" />
     <ClInclude Include="include\pipeline.h" />
-    <ClInclude Include="include\shader.h" />
     <ClInclude Include="include\swapChain.h" />
-    <ClInclude Include="include\swapChainImage.h" />
+    <ClInclude Include="include\frameBuffer.h" />
     <ClInclude Include="include\system.h" />
   </ItemGroup>
   <ItemGroup>

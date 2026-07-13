@@ -1,24 +1,16 @@
 #include "pch.h"
 
 #include "pipeline.h"
-#include "shader.h"
-
-#include "system.h"
-#include "graphics.h"
-#include "swapChain.h"
 
 #include "verify.h"
 
 namespace tracer::graphics {
 	struct Pipeline::Implementation {
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineStateObject;
-
-		std::unique_ptr<Shader> vertexShader;
-		std::unique_ptr<Shader> pixelShader;
+		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	};
 
-	Pipeline::Pipeline(LPCWSTR vertexShaderName, LPCWSTR pixelShaderName) : implementation(std::make_unique<Implementation>()) {
+	Pipeline::Pipeline(Microsoft::WRL::ComPtr<ID3D12Device15> device, Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, DXGI_FORMAT depthStencilFormat, DXGI_FORMAT renderTargetFormat) : implementation(std::make_unique<Implementation>()) {
 		D3D12_DESCRIPTOR_RANGE1 descriptorRange = {
 				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
 				.NumDescriptors = 1,
@@ -50,12 +42,8 @@ namespace tracer::graphics {
 		VERIFY_COM(D3D12SerializeVersionedRootSignature(&rootSignatureDesc, rootSignature.GetAddressOf(), nullptr));
 		std::println("Versioned root signature serialized");
 
-		auto device = getDevice();
 		VERIFY_COM(device->CreateRootSignature(1, rootSignature->GetBufferPointer(), rootSignature->GetBufferSize(), IID_PPV_ARGS(implementation->rootSignature.GetAddressOf())));
 		std::println("Root signature created");
-
-		implementation->vertexShader = std::make_unique<Shader>(vertexShaderName, L"vs_6_9");
-		implementation->pixelShader = std::make_unique<Shader>(pixelShaderName, L"ps_6_9");
 
 		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] = {
 			{
@@ -100,8 +88,14 @@ namespace tracer::graphics {
 		
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {
 			.pRootSignature = implementation->rootSignature.Get(),
-			.VS = implementation->vertexShader->getByteCode(),
-			.PS = implementation->pixelShader->getByteCode(),
+			.VS = {
+				.pShaderBytecode = vertexShader->GetBufferPointer(),
+				.BytecodeLength = vertexShader->GetBufferSize(),
+			},
+			.PS = {
+				.pShaderBytecode = pixelShader->GetBufferPointer(),
+				.BytecodeLength = pixelShader->GetBufferSize(),
+			},
 			.BlendState = DirectX::CommonStates::AlphaBlend,
 			.SampleMask = UINT_MAX,
 			.RasterizerState = DirectX::CommonStates::Wireframe,
@@ -113,25 +107,25 @@ namespace tracer::graphics {
 			.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
 			.NumRenderTargets = 1,
 			.RTVFormats = {
-				swapChain::getRenderTargetFormat(),
+				renderTargetFormat,
 			},
-			.DSVFormat = swapChain::getDepthStencilFormat(),
+			.DSVFormat = depthStencilFormat,
 			.SampleDesc = {
 				.Count = 1,
 			},
 		};
 
-		VERIFY_COM(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineStateObject.GetAddressOf())));
+		VERIFY_COM(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineState.GetAddressOf())));
 		std::println("Graphics pipeline state object created");
 	}
-
+	/*
 	void Pipeline::bind() {
 		auto commandList = getCommandList();
 
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->SetGraphicsRootSignature(implementation->rootSignature.Get());
-		commandList->SetPipelineState(implementation->pipelineStateObject.Get());
+		commandList->SetPipelineState(implementation->pipelineState.Get());
 	}
-
+	*/
 	Pipeline::~Pipeline() = default;
 }

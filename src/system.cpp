@@ -6,19 +6,15 @@
 
 namespace tracer::system {
 	namespace {
-		const char* title = "Tracer";
+		const char* title = nullptr;
 
-		uint32_t width = 800;
-		uint32_t height = 600;
+		uint32_t width = 0;
+		uint32_t height = 0;
 
 		HINSTANCE instance = nullptr;
 		HWND window = nullptr;
-		HANDLE event = nullptr;
 
 		std::filesystem::path dataFolder = {};
-
-		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};
-		std::chrono::duration<float> timeDelta = {};
 
 		DirectX::Mouse mouse = {};
 		DirectX::Keyboard keyboard = {};
@@ -74,7 +70,14 @@ namespace tracer::system {
 		}
 	}
 
-	void initialize() {
+	void initialize(const char* windowTitle) {
+		width = 800;
+		height = 600;
+		std::println("Window size set");
+
+		title = windowTitle;
+		std::println("Window title set");
+
 		VERIFY_COM(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 		std::println("COM library initialized with multithread support");
 
@@ -103,21 +106,11 @@ namespace tracer::system {
 		VERIFY_WIN(window);
 		std::println("Window created");
 
-		mouse.SetWindow(window);
-		std::println("Mouse window set");
-
-		mouse.SetMode(DirectX::Mouse::Mode::MODE_RELATIVE);
-		std::println("Mouse mode set to relative");
-
 		VERIFY_NOT(ShowWindow(window, SW_SHOWDEFAULT));
 		std::println("Window shown");
 
 		VERIFY(UpdateWindow(window));
 		std::println("Window updated");
-
-		mouseStateTracker.Reset();
-		keyboardStateTracker.Reset();
-		std::println("Mouse and keyboard state reset");
 
 		RECT rect;
 		VERIFY_WIN(GetClientRect(window, &rect));
@@ -125,15 +118,14 @@ namespace tracer::system {
 		height = rect.bottom;
 		std::println("Window size: {}x{}", width, height);
 
-		event = CreateEvent(nullptr, false, false, nullptr);
-		VERIFY_WIN(event);
-		std::println("Event created");
+		mouse.SetWindow(window);
+		std::println("Mouse window set");
+
+		mouse.SetMode(DirectX::Mouse::Mode::MODE_RELATIVE);
+		std::println("Mouse mode set to relative");
 
 		dataFolder = std::filesystem::current_path() / "data";
 		std::println("Data folder set");
-
-		timeCurrent = std::chrono::high_resolution_clock::now();
-		std::println("Current time saved");
 	}
 
 	uint32_t getWidth() {
@@ -148,17 +140,28 @@ namespace tracer::system {
 		return window;
 	}
 
-	HANDLE getEvent() {
-		return event;
-	}
-
 	std::filesystem::path getDataFolder() {
 		return dataFolder;
+	}
+	/*
+	namespace {
+		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};
+		std::chrono::duration<float> timeDelta = {};
+
+	}
+
+	void aaaaaaaaaaaaaaaaaaa() {
+		mouseStateTracker.Reset();
+		keyboardStateTracker.Reset();
+		std::println("Mouse and keyboard state reset");
+
+		timeCurrent = std::chrono::high_resolution_clock::now();
+		std::println("Current time saved");
 	}
 
 	bool poll() {
 		MSG message;
-
+		
 		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
 			if (message.message == WM_QUIT) {
 				return false;
@@ -192,4 +195,5 @@ namespace tracer::system {
 	DirectX::Keyboard::State getKeyboardState() {
 		return keyboardState;
 	}
+	*/
 }

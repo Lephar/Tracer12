@@ -41,13 +41,10 @@
     <ClCompile Include="src\memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\swapChainImage.cpp">
+    <ClCompile Include="src\frameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\content.cpp">
@@ -77,6 +74,27 @@
     <ClCompile Include="src\mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\compiler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\infrastructure.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\device.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tracer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pch.h">
@@ -103,13 +121,10 @@
     <ClInclude Include="include\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\swapChainImage.h">
+    <ClInclude Include="include\frameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\pipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\content.h">
@@ -134,6 +149,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\camera.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\compiler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\infrastructure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\tracer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

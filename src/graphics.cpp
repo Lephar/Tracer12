@@ -1,7 +1,14 @@
 #include "pch.h"
 
 #include "graphics.h"
-#include "system.h"
+
+#include "compiler.h"
+#include "infrastructure.h"
+#include "device.h"
+#include "queue.h"
+#include "memory.h"
+#include "swapchain.h"
+#include "pipeline.h"
 
 #include "verify.h"
 
@@ -12,149 +19,97 @@ extern "C" {
 
 namespace tracer::graphics {
 	namespace {
-		Microsoft::WRL::ComPtr<IDxcCompiler3> compiler = nullptr;
-		Microsoft::WRL::ComPtr<IDxcUtils> utils = nullptr;
+		std::unique_ptr<Pipeline> pipeline;
+	}
+
+	void initialize(std::filesystem::path dataFolder, HWND window, uint32_t width, uint32_t height) {
+		compiler::initialize(dataFolder);
 		
-		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
-		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;
+		infrastructure::initialize();
 
-		Microsoft::WRL::ComPtr<ID3D12Debug6> debug = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12Device15> device = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12DebugDevice2> debugDevice = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12InfoQueue1> infoQueue = nullptr;
+		auto factory = infrastructure::getFactory();
+		auto adapter = infrastructure::getAdapter();
 
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12DebugCommandQueue1> debugCommandQueue = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator = nullptr;
-		Microsoft::WRL::ComPtr<ID3D12Fence1> fence = nullptr;
+		device::initialize(adapter);
 
-		uint64_t fenceValue = 0;
+		auto device = device::getDevice();
 
-		DWORD callbackCookie = 0;
+		queue::initialize(device);
 
-		void __stdcall CallbackFunc(D3D12_MESSAGE_CATEGORY Category, D3D12_MESSAGE_SEVERITY Severity, D3D12_MESSAGE_ID ID, LPCSTR pDescription, void* pContext) {
-			std::println("{}", pDescription);
-		}
-	}
+		auto queue = queue::getCommandQueue();
 
-	void initialize() {
-		VERIFY_COM(D3D12GetDebugInterface(IID_PPV_ARGS(debug.GetAddressOf())));
-		std::println("Debug controller acquired");
+		const uint32_t imageCount = 3;
+		const DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+		const DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		debug->EnableDebugLayer();
-		std::println("Debug layers enabled");
+		swapChain::initialize(window, factory, device, queue, width, height, imageCount, depthStencilFormat, renderTargetFormat);
+		
+		auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
+		auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
 
-		debug->SetEnableGPUBasedValidation(true);
-		std::println("GPU based validations enabled");
-
-		debug->SetEnableSynchronizedCommandQueueValidation(true);
-		std::println("Synchronized command queue validations enabled");
-
-		debug->SetEnableAutoName(true);
-		std::println("Device objects auto naming enabled");
-
-		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));
-		std::println("Shader compiler created");
-
-		VERIFY_COM(DxcCreateInstance2(nullptr, CLSID_DxcUtils, IID_PPV_ARGS(utils.GetAddressOf())));
-		std::println("Shader compilation utilities created");
-
-		VERIFY_COM(CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(factory.GetAddressOf())));
-		std::println("DXGI factory created with debug mode enabled");
-
-		VERIFY_COM(factory->EnumAdapterByGpuPreference(0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(adapter.GetAddressOf())));
-
-		DXGI_ADAPTER_DESC3 adapterDesc;
-		adapter->GetDesc3(&adapterDesc);
-		char adapterDescription[UCHAR_MAX];
-		wsprintf(adapterDescription, "%ws", adapterDesc.Description);
-
-		std::println("High performance adapter {} selected", adapterDescription);
-
-		VERIFY_COM(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(device.GetAddressOf())));
-		std::println("Device created with feature set 12.2");
-
-		VERIFY_COM(device->QueryInterface(IID_PPV_ARGS(debugDevice.GetAddressOf())));
-		std::println("Debug device created from device");
-
-		VERIFY_COM(device->QueryInterface(IID_PPV_ARGS(infoQueue.GetAddressOf())));
-		std::println("Info queue created from device");
-
-		VERIFY_COM(infoQueue->RegisterMessageCallback(CallbackFunc, D3D12_MESSAGE_CALLBACK_FLAG_NONE, nullptr, &callbackCookie));
-		std::println("Debug message callback registered");
-
-		D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {
-			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
-			.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
-			.NodeMask = 1,
-		};
-
-		VERIFY_COM(device->CreateCommandQueue1(&commandQueueDesc, {}, IID_PPV_ARGS(commandQueue.GetAddressOf())));
-		std::println("Direct command queue created");
-
-		VERIFY_COM(commandQueue->QueryInterface(IID_PPV_ARGS(debugCommandQueue.GetAddressOf())));
-		std::println("Debug command queue created from command queue");
-
-		VERIFY_COM(device->CreateCommandList1(1, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(commandList.GetAddressOf())));
-		std::println("Direct command list created");
-
-		VERIFY_COM(device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(commandAllocator.GetAddressOf())));
-		std::println("Command allocator created");
-
-		VERIFY_COM(device->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(fence.GetAddressOf())));
-		std::println("Fence created and value set");
-
-		VERIFY_COM(commandAllocator->Reset());
-		VERIFY_COM(commandList->Reset(commandAllocator.Get(), nullptr));
-		std::println("Command allocator and list reset");
-	}
-
-	void prepareLoop() {
-		VERIFY_COM(commandList->Close());
-
-		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
-		std::println("Initialization commands sent for execution");
-
-		fenceValue++;
-		VERIFY_COM(commandQueue->Signal(fence.Get(), fenceValue));
-
-		if (fence->GetCompletedValue() < fenceValue) {
-			auto fenceEvent = system::getEvent();
-
-			VERIFY_COM(fence->SetEventOnCompletion(fenceValue, fenceEvent));
-			VERIFY_COM(WaitForSingleObject(fenceEvent, INFINITE));
-		}
-
-		std::println("Initialization commands completed");
-	}
-
-	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler() {
-		return compiler;
-	}
-
-	Microsoft::WRL::ComPtr<IDxcUtils> getCompilerUtils() {
-		return utils;
-	}
-
-	Microsoft::WRL::ComPtr<IDXGIFactory7> getFactory() {
-		return factory;
+		pipeline = std::make_unique<Pipeline>(device, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice() {
-		return device;
-	}
-
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue() {
-		return commandQueue;
+		return device::getDevice();
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList() {
-		return commandList;
+		return queue::getCommandList();
 	}
 
-	void execute() {
-		commandQueue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(commandList.GetAddressOf()));
+	void createResources(uint32_t materialCount, uint32_t materialTextureCount) {
+		auto device = device::getDevice();
+		const auto imageCount = swapChain::getImageCount();
+
+		memory::allocate(device, imageCount, materialCount, materialTextureCount);
+
+		const auto defaultHeapProperties = memory::getDefaultHeapProperties();
+		auto depthStencilDescriptorHeap = memory::getDepthStencilDescriptorHeap();
+		auto renderTargetDescriptorHeap = memory::getRenderTargetDescriptorHeap();
+
+		swapChain::createResources(device, defaultHeapProperties, depthStencilDescriptorHeap, renderTargetDescriptorHeap);
 	}
+
+	D3D12_HEAP_PROPERTIES getDefaultHeapProperties() {
+		return memory::getDefaultHeapProperties();
+	}
+
+	D3D12_HEAP_PROPERTIES getUploadHeapProperties() {
+		return memory::getUploadHeapProperties();
+	}
+
+	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap() {
+		return memory::getDepthStencilDescriptorHeap();
+	}
+
+	std::shared_ptr<DirectX::DescriptorHeap> getRenderTargetDescriptorHeap() {
+		return memory::getRenderTargetDescriptorHeap();
+	}
+
+	std::shared_ptr<DirectX::DescriptorHeap> getShaderResourceDescriptorHeap() {
+		return memory::getShaderResourceDescriptorHeap();
+	}
+
+	void beginCommand() {
+		queue::begin();
+	}
+
+	void endCommand() {
+		queue::end();
+		queue::execute();
+		queue::signal();
+		queue::wait();
+	}
+	/*
+	void beginFrame() {
+		auto commandList = queue::getCommandList();
+		swapChain::begin(commandList);
+	}
+
+	void endFrame() {
+		auto commandList = queue::getCommandList();
+		swapChain::end(commandList);
+	}
+	*/
 }
