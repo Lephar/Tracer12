@@ -18,9 +18,12 @@ namespace tracer::content {
 		debug::incrementDepth();
 
 		auto& constants = getMeshConstants();
-		auto& primitives = getPrimitives();
-
+		
 		implementation->constantIndex = static_cast<uint32_t>(constants.size());
+		constants.emplace_back(DirectX::SimpleMath::Matrix{ transform });
+
+		auto& primitives = getPrimitives();
+		
 		implementation->primitiveBegin = static_cast<uint32_t>(primitives.size());
 		implementation->primitiveCount = static_cast<uint32_t>(data->primitives_count);
 

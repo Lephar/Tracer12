@@ -2,16 +2,30 @@
 
 #include "light.h"
 
+#include "content.h"
+
 #include "debug.h"
 
 namespace tracer::content {
 	struct Light::Implementation {
-		Constant constant;
+		uint32_t constantIndex;
 	};
 
-	Light::Light(cgltf_light* data) : implementation(std::make_unique<Implementation>()) {
+	Light::Light(cgltf_light* data, cgltf_float* transform) : implementation(std::make_unique<Implementation>()) {
 		debug::print("Light: %s", data->name);
 		debug::incrementDepth();
+
+		debug::verify::positive(data->type == cgltf_light_type_point);
+		
+		auto position = DirectX::SimpleMath::Vector4::Transform(DirectX::SimpleMath::Vector4{ 0.0f, 0.0f, 0.0f, 1.0f }, DirectX::SimpleMath::Matrix{ transform });
+		debug::print("Position: [%g, %g, %g, %g]", position.x, position.y, position.z, position.w);
+		
+		auto color = DirectX::SimpleMath::Vector4 { data->color[0], data->color[1], data->color[2], data->intensity };
+		debug::print("Color:    [%g, %g, %g, %g]", color.x, color.y, color.z, color.w);
+
+		auto& constants = getLightConstants();
+		implementation->constantIndex = static_cast<uint32_t>(constants.size());
+		constants.emplace_back(position, color);
 
 		debug::decrementDepth();
 	}

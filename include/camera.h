@@ -14,7 +14,7 @@ namespace tracer::content {
 			DirectX::SimpleMath::Matrix projectionView;
 		};
 
-		Camera(cgltf_camera* data);
+		Camera(cgltf_camera* data, cgltf_float* transform);
 
 		Camera(const Camera& camera) = delete;
 		Camera& operator=(const Camera& camera) = delete;

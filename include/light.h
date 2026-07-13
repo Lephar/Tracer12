@@ -13,7 +13,7 @@ namespace tracer::content {
 			DirectX::SimpleMath::Vector4 color;
 		};
 
-		Light(cgltf_light* data);
+		Light(cgltf_light* data, cgltf_float* transform);
 
 		Light(const Light& light) = delete;
 		Light& operator=(const Light& light) = delete;

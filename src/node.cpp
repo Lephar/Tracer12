@@ -8,9 +8,9 @@
 
 namespace tracer::content {
 	struct Node::Implementation {
-		std::optional<cgltf_size> cameraIndex;
-		std::optional<cgltf_size> lightIndex;
-		std::optional<cgltf_size> meshIndex;
+		std::optional<uint32_t> cameraIndex;
+		std::optional<uint32_t> lightIndex;
+		std::optional<uint32_t> meshIndex;
 
 		std::vector<Node> children;
 	};
@@ -19,15 +19,26 @@ namespace tracer::content {
 		debug::print("Node: %s", data->name);
 		debug::incrementDepth();
 
-		implementation->cameraIndex = {};
-		implementation->lightIndex = {};
+		cgltf_float transform[16];
+		if (data->camera || data->light || data->mesh) {
+			cgltf_node_transform_world(data, transform);
+		}
+
+		if (data->camera && data->camera->type == cgltf_camera_type_perspective) {
+			auto& cameras = getCameras();
+			implementation->cameraIndex = static_cast<uint32_t>(cameras.size());
+			cameras.emplace_back(data->camera, transform);
+		}
+
+		if (data->light && data->light->type == cgltf_light_type_point) {
+			auto& lights = getLights();
+			implementation->lightIndex = static_cast<uint32_t>(lights.size());
+			lights.emplace_back(data->light, transform);
+		}
 
 		if (data->mesh) {
-			cgltf_float transform[16];
-			cgltf_node_transform_world(data, transform);
-
 			auto& meshes = getMeshes();
-			implementation->meshIndex = meshes.size();
+			implementation->meshIndex = static_cast<uint32_t>(meshes.size());
 			meshes.emplace_back(data->mesh, transform);
 		}
 

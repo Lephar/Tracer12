@@ -28,20 +28,20 @@ namespace tracer::content {
 				debug::print("Base color texture:");
 
 				implementation->baseColorIndex.emplace(static_cast<uint32_t>(textures.size()));
-				textures.emplace_back(folder, data->pbr_metallic_roughness.base_color_texture.texture->image, false);
+				textures.emplace_back(folder, data->pbr_metallic_roughness.base_color_texture.texture->image, true);
 			}
 			if (data->pbr_metallic_roughness.metallic_roughness_texture.texture && data->pbr_metallic_roughness.metallic_roughness_texture.texture->image) {
 				debug::print("Metallic roughness texture:");
 				
 				implementation->metallicRoughnessIndex.emplace(static_cast<uint32_t>(textures.size()));
-				textures.emplace_back(folder, data->pbr_metallic_roughness.metallic_roughness_texture.texture->image, false);
+				textures.emplace_back(folder, data->pbr_metallic_roughness.metallic_roughness_texture.texture->image, true);
 			}
 		}
 		if (data->normal_texture.texture && data->normal_texture.texture->image) {
 			debug::print("Normal texture:");
 			
 			implementation->normalIndex.emplace(static_cast<uint32_t>(textures.size()));
-			textures.emplace_back(folder, data->normal_texture.texture->image, false);
+			textures.emplace_back(folder, data->normal_texture.texture->image, true);
 		}
 
 		debug::decrementDepth();
