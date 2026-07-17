@@ -23,6 +23,12 @@ namespace tracer::system {
 		DirectX::Mouse::ButtonStateTracker mouseStateTracker = {};
 		DirectX::Keyboard::KeyboardStateTracker keyboardStateTracker = {};
 
+		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};
+		std::chrono::duration<float> timeDelta = {};
+
+		DirectX::SimpleMath::Vector2 mouseMovement = {};
+		DirectX::SimpleMath::Vector3 keyboardMovement = {};
+
 		LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 			if (uMsg == WM_DESTROY) {
 				PostQuitMessage(EXIT_SUCCESS);
@@ -149,39 +155,24 @@ namespace tracer::system {
 		return dataFolder;
 	}
 
-	bool poll() {
-		MSG message;
+	void prepareLoop() {
+		debug::print("Preparing for the main loop:");
+		debug::incrementDepth();
 
-		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
-			if (message.message == WM_QUIT) {
-				return false;
-			}
-
-			TranslateMessage(&message);
-			DispatchMessage(&message);
-		}
-
-		return true;
-	}
-	/*
-	namespace {
-		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};
-		std::chrono::duration<float> timeDelta = {};
-
-	}
-
-	void aaaaaaaaaaaaaaaaaaa() {
 		mouseStateTracker.Reset();
 		keyboardStateTracker.Reset();
 		debug::print("Mouse and keyboard state reset");
 
 		timeCurrent = std::chrono::high_resolution_clock::now();
 		debug::print("Current time saved");
+
+		debug::decrementDepth();
+		debug::print("Main loop started");
 	}
 
 	bool poll() {
 		MSG message;
-		
+
 		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
 			if (message.message == WM_QUIT) {
 				return false;
@@ -201,6 +192,20 @@ namespace tracer::system {
 		mouseStateTracker.Update(mouseState);
 		keyboardStateTracker.Update(keyboardState);
 
+		mouseMovement = DirectX::SimpleMath::Vector2 {
+			-2.0f * mouseState.x / width,
+			-2.0f * mouseState.y / height
+		};
+		
+		keyboardMovement = DirectX::SimpleMath::Vector3 {
+			static_cast<float>(keyboardState.D - keyboardState.A),
+			static_cast<float>(keyboardState.R - keyboardState.F),
+			static_cast<float>(keyboardState.W - keyboardState.S),
+		};
+
+		keyboardMovement.Normalize();
+		keyboardMovement *= timeDelta.count();
+
 		return true;
 	}
 
@@ -208,12 +213,11 @@ namespace tracer::system {
 		return timeDelta.count();
 	}
 
-	DirectX::Mouse::State getMouseState() {
-		return mouseState;
+	DirectX::SimpleMath::Vector2 getMouseMovement() {
+		return mouseMovement;
 	}
 
-	DirectX::Keyboard::State getKeyboardState() {
-		return keyboardState;
+	DirectX::SimpleMath::Vector3 getKeyboardMovement() {
+		return keyboardMovement;
 	}
-	*/
 }

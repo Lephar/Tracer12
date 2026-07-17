@@ -11,11 +11,12 @@ namespace tracer::system {
 	HWND getWindow();
 	
 	std::filesystem::path getDataFolder();
+
+	void prepareLoop();
 	
 	bool poll();
-	/*
+	
 	float getTimeDelta();
-	DirectX::Mouse::State getMouseState();
-	DirectX::Keyboard::State getKeyboardState();
-	*/
+	DirectX::SimpleMath::Vector2 getMouseMovement();
+	DirectX::SimpleMath::Vector3 getKeyboardMovement();
 }
