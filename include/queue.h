@@ -7,10 +7,11 @@ namespace tracer::graphics::queue {
 
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue();
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList();
+	HANDLE getFenceEvent();
 
+	void wait();
 	void begin();
 	void end();
 	void execute();
 	void signal();
-	void wait();
 }

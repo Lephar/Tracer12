@@ -10,36 +10,26 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	};
 
-	Pipeline::Pipeline(Microsoft::WRL::ComPtr<ID3D12Device15> device, Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, DXGI_FORMAT depthStencilFormat, DXGI_FORMAT renderTargetFormat) : implementation(std::make_unique<Implementation>()) {
+	Pipeline::Pipeline(Microsoft::WRL::ComPtr<ID3D12Device15> device, Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, DXGI_FORMAT depthStencilFormat, DXGI_FORMAT renderTargetFormat, uint32_t textureCount) : implementation(std::make_unique<Implementation>()) {
 		debug::print("Creating pipeline:");
 		debug::incrementDepth();
 		
-		D3D12_DESCRIPTOR_RANGE1 descriptorRange = {
-				.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV,
-				.NumDescriptors = 1,
-				.BaseShaderRegister = 0,
-				.RegisterSpace = 0,
-				.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
-		};
+		CD3DX12_DESCRIPTOR_RANGE1 descriptorRange;
+		descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, textureCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
 
-		D3D12_ROOT_DESCRIPTOR_TABLE1 descriptorTable = {
-			.NumDescriptorRanges = 1,
-			.pDescriptorRanges = &descriptorRange,
-		};
+		CD3DX12_ROOT_PARAMETER1 rootParameters[5];
+		rootParameters[0].InitAsConstants(4, 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[3].InitAsConstantBufferView(3, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[4].InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_PIXEL);
+		const uint32_t rootParameterCount = sizeof(rootParameters) / sizeof(CD3DX12_ROOT_PARAMETER1);
 
-		D3D12_ROOT_PARAMETER1 rootParameter = {
-			.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE,
-			.DescriptorTable = descriptorTable,
-			.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX,
-		};
+		CD3DX12_STATIC_SAMPLER_DESC1 staticSampler;
+		staticSampler.Init(0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, 0, 16, D3D12_COMPARISON_FUNC_LESS_EQUAL, D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE, 0.0f, D3D12_FLOAT32_MAX, D3D12_SHADER_VISIBILITY_PIXEL, 0, D3D12_SAMPLER_FLAG_NONE);
 
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC::Init_1_2(rootSignatureDesc, 1, &rootParameter, 0, nullptr,
-			D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-			D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS);
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC::Init_1_2(rootSignatureDesc, rootParameterCount, rootParameters, 1, &staticSampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		Microsoft::WRL::ComPtr<ID3DBlob> rootSignature;
 		debug::verify::com(D3D12SerializeVersionedRootSignature(&rootSignatureDesc, rootSignature.GetAddressOf(), nullptr));
@@ -101,7 +91,7 @@ namespace tracer::graphics {
 			},
 			.BlendState = DirectX::CommonStates::AlphaBlend,
 			.SampleMask = UINT_MAX,
-			.RasterizerState = DirectX::CommonStates::Wireframe,
+			.RasterizerState = DirectX::CommonStates::CullClockwise,
 			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,
 			.InputLayout = {
 				.pInputElementDescs = inputElementDescs,
@@ -123,14 +113,12 @@ namespace tracer::graphics {
 
 		debug::decrementDepth();
 	}
-	/*
-	void Pipeline::bind() {
-		auto commandList = getCommandList();
-
+	
+	void Pipeline::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->SetGraphicsRootSignature(implementation->rootSignature.Get());
 		commandList->SetPipelineState(implementation->pipelineState.Get());
 	}
-	*/
+	
 	Pipeline::~Pipeline() = default;
 }

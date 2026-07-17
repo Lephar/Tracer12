@@ -23,46 +23,38 @@ namespace tracer {
 
 			content::load(dataFolder);
 
-			const auto materialCount = static_cast<uint32_t>(content::getMaterials().size());
-			const auto materialTextureCount = content::getMaterialTextureCount();
+			const auto constantBufferSize = content::getConstantBufferSize();
+			const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
 
-			graphics::createResources(materialCount, materialTextureCount);
+			graphics::createResources(constantBufferSize, textureCount);
 
-			const auto defaultHeapProperties = graphics::getDefaultHeapProperties();
-			const auto uploadHeapProperties = graphics::getUploadHeapProperties();
-			const auto shaderResourceDescriptorHeap = graphics::getShaderResourceDescriptorHeap();
-
-			content::createResources(device, defaultHeapProperties, uploadHeapProperties, shaderResourceDescriptorHeap);
+			content::createResources(device);
 
 			graphics::beginCommand();
 			content::recordUpload(commandList);
 			graphics::endCommand();
 		}
-		/*
+
 		void loop() {
-			tracer::graphics::prepareLoop();
+			const auto commandList = graphics::getCommandList();
 
 			while (system::poll()) {
-				graphics::content::update();
-				graphics::swapChain::begin();
-				pipeline->bind();
-				graphics::swapChain::bind();
-				graphics::content::draw();
-				graphics::swapChain::end();
-				graphics::execute();
-				graphics::swapChain::present();
+				graphics::beginFrame();
+				const auto constantBuffer = graphics::getCurrentConstantBuffer();
+				
+				content::draw(commandList, constantBuffer);
+				graphics::endFrame();
 			}
 		}
 
 		void destroy() {
-			graphics::swapChain::destroy();
+			graphics::destroy();
 		}
-		*/
 	}
 
 	void run() {
 		initialize();
-		//loop();
-		//destroy();
+		loop();
+		destroy();
 	}
 }

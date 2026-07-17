@@ -15,7 +15,41 @@ namespace tracer::content {
 		D3D12_CPU_DESCRIPTOR_HANDLE view;
 	};
 
-	Texture::Texture(std::filesystem::path folder, cgltf_image* data, bool compress) : implementation(std::make_unique<Implementation>()) {
+	namespace {
+		DirectX::ScratchImage construct(std::filesystem::path path) {
+			DirectX::ScratchImage image;
+			debug::verify::com(DirectX::LoadFromWICFile(path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image, nullptr));
+
+			auto& mainImage = *image.GetImages();
+			debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
+			/*
+			DirectX::CompressOptions options = {
+				.flags = DirectX::TEX_COMPRESS_PARALLEL,
+				.threshold = DirectX::TEX_THRESHOLD_DEFAULT,
+				.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT,
+			};
+
+			DirectX::ScratchImage compressedImage;
+			debug::verify::com(DirectX::CompressEx(mainImage, DXGI_FORMAT_BC5_UNORM, options, compressedImage, nullptr));
+
+			image = compressedImage;
+			debug::print("Image compressed");
+			*/
+			return image;
+		}
+	}
+	Texture::Texture(std::filesystem::path folder, const char* file) : implementation(std::make_unique<Implementation>()) {
+		debug::incrementDepth();
+
+		debug::print("File: %s", file);
+		auto path = folder / file;
+
+		implementation->image = construct(path);
+
+		debug::decrementDepth();
+	}
+
+	Texture::Texture(std::filesystem::path folder, cgltf_image* data) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
 		debug::print("Name: %s", data->name);
@@ -25,26 +59,7 @@ namespace tracer::content {
 		debug::print("Path: %s", uri.c_str());
 
 		auto path = folder / uri;
-
-		DirectX::ScratchImage image;
-		debug::verify::com(DirectX::LoadFromWICFile(path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image, nullptr));
-
-		auto& mainImage = *image.GetImages();
-		debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
-
-		if (compress) {
-			DirectX::CompressOptions options = {
-				.flags = DirectX::TEX_COMPRESS_PARALLEL,
-				.threshold = DirectX::TEX_THRESHOLD_DEFAULT,
-				.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT,
-			};
-
-			debug::verify::com(DirectX::CompressEx(mainImage, DXGI_FORMAT_BC5_UNORM, options, implementation->image, nullptr));
-			debug::print("Image compressed");
-		}
-		else {
-			implementation->image = std::move(image);
-		}
+		implementation->image = construct(path);
 
 		debug::decrementDepth();
 	}
@@ -56,7 +71,7 @@ namespace tracer::content {
 		return *this;
 	}
 
-	void Texture::createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_HEAP_PROPERTIES uploadHeapProperties, D3D12_CPU_DESCRIPTOR_HANDLE textureView) {
+	void Texture::createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_CPU_DESCRIPTOR_HANDLE textureView) {
 		auto& metadata = implementation->image.GetMetadata();
 
 		debug::verify::positive(DirectX::IsSupportedTexture(device.Get(), metadata));
@@ -87,7 +102,8 @@ namespace tracer::content {
 		const uint64_t uploadBufferSize = GetRequiredIntermediateSize(implementation->texture.Get(), 0, static_cast<uint32_t>(implementation->subresources.size()));
 		debug::print("Required buffer size acquired: %lu", uploadBufferSize);
 
-		auto uploadBufferDesc = CD3DX12_RESOURCE_DESC1::Buffer(uploadBufferSize);
+		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		const auto uploadBufferDesc = CD3DX12_RESOURCE_DESC1::Buffer(uploadBufferSize);
 		debug::verify::com(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &uploadBufferDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(implementation->buffer.GetAddressOf())));
 		debug::print("Texture upload heap created");
 	}

@@ -38,9 +38,6 @@
     <ClCompile Include="src\swapChain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\memory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\frameBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -119,9 +116,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="external\include\cgltf\cgltf_write.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\memory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\frameBuffer.h">

@@ -46,12 +46,17 @@ namespace tracer::content {
 		implementation = std::move(mesh.implementation);
 		return *this;
 	}
-	/*
-	void Mesh::draw() {
-		for (auto& primitive : implementation->primitives) {
-			primitive.draw();
+	
+	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
+		commandList->SetGraphicsRootConstantBufferView(3, constantBufferView);
+
+		auto& primitives = getPrimitives();
+
+		for (uint32_t primitiveIndex = 0; primitiveIndex < implementation->primitiveCount; primitiveIndex++) {
+			primitives.at(implementation->primitiveBegin + primitiveIndex).draw(commandList);
 		}
 	}
-	*/
+	
 	Mesh::~Mesh() = default;
 }

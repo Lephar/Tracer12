@@ -6,7 +6,6 @@
 #include "infrastructure.h"
 #include "device.h"
 #include "queue.h"
-#include "memory.h"
 #include "swapchain.h"
 #include "pipeline.h"
 
@@ -41,11 +40,6 @@ namespace tracer::graphics {
 		const DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		swapChain::initialize(window, factory, device, queue, width, height, imageCount, depthStencilFormat, renderTargetFormat);
-		
-		auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
-		auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
-
-		pipeline = std::make_unique<Pipeline>(device, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice() {
@@ -56,37 +50,22 @@ namespace tracer::graphics {
 		return queue::getCommandList();
 	}
 
-	void createResources(uint32_t materialCount, uint32_t materialTextureCount) {
+	uint32_t getImageCount() {
+		return swapChain::getImageCount();
+	}
+
+	void createResources(uint32_t constantBufferSize, uint32_t textureCount) {
 		auto device = device::getDevice();
-		const auto imageCount = swapChain::getImageCount();
 
-		memory::allocate(device, imageCount, materialCount, materialTextureCount);
+		swapChain::createResources(device, constantBufferSize);
 
-		const auto defaultHeapProperties = memory::getDefaultHeapProperties();
-		auto depthStencilDescriptorHeap = memory::getDepthStencilDescriptorHeap();
-		auto renderTargetDescriptorHeap = memory::getRenderTargetDescriptorHeap();
+		const auto depthStencilFormat = swapChain::getDepthStencilFormat();
+		const auto renderTargetFormat = swapChain::getRenderTargetFormat();
 
-		swapChain::createResources(device, defaultHeapProperties, depthStencilDescriptorHeap, renderTargetDescriptorHeap);
-	}
+		auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
+		auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
 
-	D3D12_HEAP_PROPERTIES getDefaultHeapProperties() {
-		return memory::getDefaultHeapProperties();
-	}
-
-	D3D12_HEAP_PROPERTIES getUploadHeapProperties() {
-		return memory::getUploadHeapProperties();
-	}
-
-	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap() {
-		return memory::getDepthStencilDescriptorHeap();
-	}
-
-	std::shared_ptr<DirectX::DescriptorHeap> getRenderTargetDescriptorHeap() {
-		return memory::getRenderTargetDescriptorHeap();
-	}
-
-	std::shared_ptr<DirectX::DescriptorHeap> getShaderResourceDescriptorHeap() {
-		return memory::getShaderResourceDescriptorHeap();
+		pipeline = std::make_unique<Pipeline>(device, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat, textureCount);
 	}
 
 	void beginCommand() {
@@ -99,15 +78,34 @@ namespace tracer::graphics {
 		queue::signal();
 		queue::wait();
 	}
-	/*
+	
 	void beginFrame() {
 		auto commandList = queue::getCommandList();
-		swapChain::begin(commandList);
+		auto fenceEvent = queue::getFenceEvent();
+
+		swapChain::begin(commandList, fenceEvent);
+		pipeline->bind(commandList);
+		swapChain::bind(commandList);
+	}
+
+	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer() {
+		return swapChain::getCurrentConstantBuffer();
 	}
 
 	void endFrame() {
+		auto commandQueue = queue::getCommandQueue();
 		auto commandList = queue::getCommandList();
+
 		swapChain::end(commandList);
+		queue::execute();
+		swapChain::present(commandQueue);
 	}
-	*/
+
+	void destroy() {
+		auto commandQueue = queue::getCommandQueue();
+		auto commandList = queue::getCommandList();
+		auto fenceEvent = queue::getFenceEvent();
+		
+		swapChain::destroy(commandQueue, commandList, fenceEvent);
+	}
 }

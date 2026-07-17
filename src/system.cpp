@@ -148,6 +148,21 @@ namespace tracer::system {
 	std::filesystem::path getDataFolder() {
 		return dataFolder;
 	}
+
+	bool poll() {
+		MSG message;
+
+		while (PeekMessage(&message, nullptr, 0, 0, PM_REMOVE)) {
+			if (message.message == WM_QUIT) {
+				return false;
+			}
+
+			TranslateMessage(&message);
+			DispatchMessage(&message);
+		}
+
+		return true;
+	}
 	/*
 	namespace {
 		std::chrono::time_point<std::chrono::high_resolution_clock> timeCurrent = {};

@@ -7,16 +7,16 @@ namespace tracer::graphics {
 	
 	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice();
 	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> getCommandList();
+	uint32_t getImageCount();
 
-	void createResources(uint32_t materialCount, uint32_t materialTextureCount);
-
-	D3D12_HEAP_PROPERTIES getDefaultHeapProperties();
-	D3D12_HEAP_PROPERTIES getUploadHeapProperties();
-
-	std::shared_ptr<DirectX::DescriptorHeap> getDepthStencilDescriptorHeap();
-	std::shared_ptr<DirectX::DescriptorHeap> getRenderTargetDescriptorHeap();
-	std::shared_ptr<DirectX::DescriptorHeap> getShaderResourceDescriptorHeap();
+	void createResources(uint32_t constantBufferSize, uint32_t textureCount);
 
 	void beginCommand();
 	void endCommand();
+
+	void beginFrame();
+	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer();
+	void endFrame();
+
+	void destroy();
 }

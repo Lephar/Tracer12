@@ -20,6 +20,9 @@ namespace tracer::graphics::swapChain {
 
 		DirectX::SimpleMath::Matrix projection;
 
+		std::unique_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap = nullptr;
+		std::unique_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap = nullptr;
+
 		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> depthStencilBuffer = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = {};
@@ -67,6 +70,12 @@ namespace tracer::graphics::swapChain {
 		};
 
 		debug::print("Viewport and scissor set");
+
+		depthStencilDescriptorHeap = std::make_unique<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 1);
+		debug::print("Depth stencil descriptor heap created with size 1");
+
+		renderTargetDescriptorHeap = std::make_unique<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE, imageCount);
+		debug::print("Render target descriptor heap created with size %u", imageCount);
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {
 			.Width = width,
@@ -120,16 +129,13 @@ namespace tracer::graphics::swapChain {
 		return renderTargetFormat;
 	}
 
-	void createResources(
-		Microsoft::WRL::ComPtr<ID3D12Device15> device,
-		D3D12_HEAP_PROPERTIES defaultHeapProperties,
-		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap,
-		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap
-	) {
+	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t constantBufferSize) {
 		debug::print("Creating swap chain resources:");
 		debug::incrementDepth();
 
-		auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		const auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
 			.Format = depthStencilFormat,
@@ -166,48 +172,54 @@ namespace tracer::graphics::swapChain {
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
 			debug::print("Render target view created");
 
-			frameBuffer.setResources(renderTargetBuffer, renderTargetView);
+			const auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
+			Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
+			debug::verify::com(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
+			debug::print("Constant buffer created on upload heap");
+
+			frameBuffer.setResources(renderTargetBuffer, renderTargetView, constantBuffer);
 			debug::decrementDepth();
 		}
 
 		debug::decrementDepth();
 	}
-	/*
-	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	
+	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
 		imageIndex = swapChain->GetCurrentBackBufferIndex();
-		auto& image = frameBuffers.at(imageIndex);
+		auto& frameBuffer = frameBuffers.at(imageIndex);
 
-		image.wait();
-		image.begin();
+		frameBuffer.wait(commandList, fenceEvent);
+		frameBuffer.begin(commandList);
 	}
 
-	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		frameBuffers.at(imageIndex).end();
+	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer() {
+		return frameBuffers.at(imageIndex).getConstantBuffer();
 	}
 
-	void bind() {
-		auto commandList = getCommandList();
-
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissor);
 
-		frameBuffers.at(imageIndex).bind(depthStencilView);
+		frameBuffers.at(imageIndex).bind(commandList, depthStencilView);
 	}
 
-	void present() {
-		frameBuffers.at(imageIndex).signal();
+	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		frameBuffers.at(imageIndex).end(commandList);
+	}
+
+	void present(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue) {
+		frameBuffers.at(imageIndex).signal(commandQueue);
 
 		DXGI_PRESENT_PARAMETERS presentParameters = {};
 		debug::verify::com(swapChain->Present1(0, 0, &presentParameters));
 	}
 
-	void destroy() {
+	void destroy(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
 		for (auto& image : frameBuffers) {
-			image.signal();
+			image.signal(commandQueue);
 		}
 		for (auto& image : frameBuffers) {
-			image.wait();
+			image.wait(commandList, fenceEvent);
 		}
 	}
-	*/
 }

@@ -20,19 +20,13 @@ namespace tracer::graphics::swapChain {
 	DXGI_FORMAT getDepthStencilFormat();
 	DXGI_FORMAT getRenderTargetFormat();
 
-	void createResources(
-		Microsoft::WRL::ComPtr<ID3D12Device15> device,
-		D3D12_HEAP_PROPERTIES defaultHeapProperties,
-		std::shared_ptr<DirectX::DescriptorHeap> depthStencilDescriptorHeap,
-		std::shared_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap
-	);
-	/*
-	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t constantBufferSize);
+
+	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
+	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer();
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+	void present(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue);
 
-	void bind();
-	void present();
-
-	void destroy();
-	*/
+	void destroy(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
 }

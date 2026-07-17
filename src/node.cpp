@@ -58,16 +58,16 @@ namespace tracer::content {
 		implementation = std::move(node.implementation);
 		return *this;
 	}
-	/*
-	void Node::draw() {
-		if (implementation->mesh.has_value()) {
-			implementation->mesh->draw();
+	
+	void Node::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		if (implementation->meshIndex.has_value()) {
+			getMeshes().at(implementation->meshIndex.value()).draw(commandList);
 		}
 
 		for (auto& child : implementation->children) {
-			child.draw();
+			child.draw(commandList);
 		}
 	}
-	*/
+	
 	Node::~Node() = default;
 }

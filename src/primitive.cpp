@@ -9,17 +9,24 @@
 
 namespace tracer::content {
 	struct Primitive::Implementation {
-		uint64_t indexBegin;
-		uint64_t indexCount;
-		uint64_t vertexOffset;
+		uint32_t materialIndex;
+		uint32_t indexBegin;
+		uint32_t indexCount;
+		uint32_t vertexOffset;
 	};
 
 	Primitive::Primitive(cgltf_primitive* data) : implementation(std::make_unique<Implementation>()) {
+		auto& materials = getMaterials();
+		auto material = std::find(materials.begin(), materials.end(), std::string{ data->material->name });
+
+		implementation->materialIndex = static_cast<uint32_t>(material - materials.begin());
+		debug::print("Material: %u-%s", implementation->materialIndex, data->material->name);
+
 		auto& indices = getIndices();
 		auto& vertices = getVertices();
 
-		implementation->indexBegin = indices.size();
-		implementation->vertexOffset = vertices.size();
+		implementation->indexBegin = static_cast<uint32_t>(indices.size());
+		implementation->vertexOffset = static_cast<uint32_t>(vertices.size());
 
 		auto& indexAccessor = data->indices;
 		auto& indexView = indexAccessor->buffer_view;
@@ -27,8 +34,8 @@ namespace tracer::content {
 
 		void* indexData = reinterpret_cast<uint8_t*>(indexBuffer->data) + indexView->offset + indexAccessor->offset;
 
-		implementation->indexCount = indexAccessor->count;
-		debug::print("%lu INDEX", implementation->indexCount);
+		implementation->indexCount = static_cast<uint32_t>(indexAccessor->count);
+		debug::print("%u INDEX", implementation->indexCount);
 
 		if (indexAccessor->component_type == cgltf_component_type_r_16 || indexAccessor->component_type == cgltf_component_type_r_16u) {
 			auto indexDataShort = reinterpret_cast<uint16_t*>(indexData);
@@ -139,10 +146,13 @@ namespace tracer::content {
 		implementation = std::move(primitive.implementation);
 		return *this;
 	}
-	/*
-	void Primitive::draw() {
-		getCommandList()->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
+
+	void Primitive::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+		auto& material = getMaterials().at(implementation->materialIndex);
+		material.bind(commandList);
+
+		commandList->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
 	}
-	*/
+
 	Primitive::~Primitive() = default;
 }

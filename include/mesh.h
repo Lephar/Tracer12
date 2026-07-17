@@ -20,7 +20,7 @@ namespace tracer::content {
 		Mesh(Mesh&& mesh) noexcept;
 		Mesh& operator=(Mesh&& mesh) noexcept;
 
-		//void draw();
+		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 
 		~Mesh();
 	};

@@ -58,12 +58,12 @@ namespace tracer::content {
 		implementation = std::move(asset.implementation);
 		return *this;
 	}
-	/*
-	void Asset::draw() {
+	
+	void Asset::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		for (auto& node : implementation->nodes) {
-			node.draw();
+			node.draw(commandList);
 		}
 	}
-	*/
+	
 	Asset::~Asset() = default;
 }

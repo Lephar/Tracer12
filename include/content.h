@@ -31,8 +31,17 @@ namespace tracer::content {
 	std::vector<Primitive::Index>& getIndices();
 	std::vector<Primitive::Vertex>& getVertices();
 
-	const uint32_t getMaterialTextureCount();
-
-	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_HEAP_PROPERTIES defaultHeapProperties, D3D12_HEAP_PROPERTIES uploadHeapProperties, std::shared_ptr<DirectX::DescriptorHeap> shaderResourceDescriptorHeap);
+	uint32_t getCameraConstantAlignment();
+	uint32_t getLightConstantAlignment();
+	uint32_t getMeshConstantAlignment();
+	uint32_t getCameraConstantsOffset();
+	uint32_t getLightConstantsOffset();
+	uint32_t getMeshConstantsOffset();
+	uint32_t getConstantBufferSize();
+	
+	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device);
 	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+
+	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView();
+	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
 }
