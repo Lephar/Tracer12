@@ -12,7 +12,7 @@
 #include "asset.h"
 
 namespace tracer::content {
-	void load(std::filesystem::path dataFolder);
+	void load(std::filesystem::path dataFolder, float aspectRatio);
 
 	std::filesystem::path getAssetFolder();
 
@@ -44,5 +44,6 @@ namespace tracer::content {
 	void clearStaging();
 
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView();
+	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement);
 	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
 }

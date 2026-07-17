@@ -15,13 +15,14 @@ namespace tracer {
 			const auto window = system::getWindow();
 			const auto width = system::getWidth();
 			const auto height = system::getHeight();
+			const auto aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
 			graphics::initialize(dataFolder, window, width, height);
 
 			const auto device = graphics::getDevice();
 			const auto commandList = graphics::getCommandList();
 
-			content::load(dataFolder);
+			content::load(dataFolder, aspectRatio);
 
 			const auto constantBufferSize = content::getConstantBufferSize();
 			const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
@@ -40,7 +41,14 @@ namespace tracer {
 		void loop() {
 			const auto commandList = graphics::getCommandList();
 
+			system::prepareLoop();
+
 			while (system::poll()) {
+				const auto mouseMovement = system::getMouseMovement();
+				const auto keyboardMovement = system::getKeyboardMovement();
+
+				content::update(mouseMovement, keyboardMovement);
+
 				graphics::beginFrame();
 				const auto constantBuffer = graphics::getCurrentConstantBuffer();
 				

@@ -26,6 +26,8 @@ namespace tracer::content {
 
 		std::unique_ptr<DirectX::DescriptorHeap> shaderResourceDescriptorHeap = nullptr;
 
+		uint32_t defaultCameraIndex = UINT32_MAX;
+
 		uint32_t cameraConstantAlignment = UINT32_MAX;
 		uint32_t lightConstantAlignment = UINT32_MAX;
 		uint32_t meshConstantAlignment = UINT32_MAX;
@@ -49,9 +51,13 @@ namespace tracer::content {
 		D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
 		D3D12_GPU_VIRTUAL_ADDRESS currentConstantBufferView = {};
+
+		DirectX::SimpleMath::Vector3 position = DirectX::SimpleMath::Vector3::Zero;
+		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::UnitZ;
+		DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
 	}
 
-	void load(std::filesystem::path dataFolder) {
+	void load(std::filesystem::path dataFolder, float aspectRatio) {
 		//debug::deactivate();
 
 		debug::print("Loading content:");
@@ -62,7 +68,13 @@ namespace tracer::content {
 
 		materials.resize(1);
 		assets.emplace_back("Sponza", "Sponza_Main.gltf");
+		
+		for (auto& camera : cameras) {
+			camera.adjust(aspectRatio);
+		}
 
+		defaultCameraIndex = 0;
+		
 		cameraConstantAlignment = static_cast<uint32_t>(align(sizeof(Camera::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 		lightConstantAlignment = static_cast<uint32_t>(align(sizeof(Light::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 		meshConstantAlignment = static_cast<uint32_t>(align(sizeof(Mesh::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
@@ -303,6 +315,26 @@ namespace tracer::content {
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView() {
 		return currentConstantBufferView;
 	}
+	
+	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement) {
+		const auto turnSpeed = 1.0f;
+		const auto moveSpeed = 4.0f;
+
+		mouseMovement *= turnSpeed;
+		keyboardMovement *= moveSpeed;
+
+		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(up, mouseMovement.x));
+
+		DirectX::SimpleMath::Vector3 right = forward.Cross(up);
+		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(right, mouseMovement.y));
+
+		position += keyboardMovement.x * right;
+		position += keyboardMovement.y * up;
+		position += keyboardMovement.z * forward;
+
+		auto view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, up);
+		cameras.at(defaultCameraIndex).update(view);
+	}
 
 	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
 		CD3DX12_RANGE readRange(0, 0);
@@ -332,37 +364,12 @@ namespace tracer::content {
 		commandList->SetDescriptorHeaps(1, &descriptorHeap);
 		commandList->SetGraphicsRootDescriptorTable(4, descriptorTable);
 
-		cameras.front().bind(commandList);
-		Light::bind(commandList);
+		auto& camera = cameras.at(defaultCameraIndex);
+		camera.bind(commandList);
+		Light::bindAll(commandList);
 
 		for (auto& asset : assets) {
 			asset.draw(commandList);
 		}
 	}
-	/*
-	void update() {
-		auto width = system::getWidth();
-		auto height = system::getHeight();
-		auto timeDelta = system::getTimeDelta();
-		auto mouseState = system::getMouseState();
-		auto keyboardState = system::getKeyboardState();
-
-		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(up, -2.0f * mouseState.x / width));
-
-		DirectX::SimpleMath::Vector3 right = forward.Cross(up);
-		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(right, -2.0f * mouseState.y / height));
-
-		DirectX::SimpleMath::Vector3 movement {
-			timeDelta * (keyboardState.D - keyboardState.A),
-			timeDelta * (keyboardState.R - keyboardState.F),
-			timeDelta * (keyboardState.W - keyboardState.S),
-		};
-
-		position += movement.x * right;
-		position += movement.y * up;
-		position += movement.z * forward;
-
-		constants.view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, DirectX::SimpleMath::Vector3::UnitY);
-	}
-	*/
 }

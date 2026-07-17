@@ -35,13 +35,12 @@ namespace tracer::content {
 		implementation->farPlane = perspective.has_zfar ? perspective.zfar : perspective.znear * 1024.0f;
 		debug::print("Far plane:     %g", implementation->farPlane);
 
-		auto view = DirectX::SimpleMath::Matrix{ transform }.Invert();
-		auto projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
-		auto projectionView = view * projection;
-
 		auto& constants = getCameraConstants();
 		implementation->constantIndex = static_cast<uint32_t>(constants.size());
-		constants.emplace_back(view, projection, projectionView);
+		constants.push_back(Camera::Constant{});
+
+		auto& constant = constants.back();
+		constant.view = DirectX::SimpleMath::Matrix{ transform }.Invert();
 
 		debug::decrementDepth();
 	}
@@ -51,6 +50,19 @@ namespace tracer::content {
 	Camera& Camera::operator=(Camera&& camera) noexcept {
 		implementation = std::move(camera.implementation);
 		return *this;
+	}
+
+	void Camera::adjust(float aspectRatio) {
+		auto& constants = getCameraConstants();
+		auto& constant = constants.at(implementation->constantIndex);
+
+		implementation->aspectRatio = aspectRatio;
+		constant.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
+	}
+
+	void Camera::update(DirectX::SimpleMath::Matrix view) {
+		auto& constant = getCameraConstants().at(implementation->constantIndex);
+		constant.projectionView = constant.view * view * constant.projection;
 	}
 
 	void Camera::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
