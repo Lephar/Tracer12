@@ -8,6 +8,7 @@
 
 namespace tracer::content {
 	struct Texture::Implementation {
+		Type type;
 		DirectX::ScratchImage image;
 		std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> buffer;
@@ -16,15 +17,24 @@ namespace tracer::content {
 	};
 
 	namespace {
-		DirectX::ScratchImage construct(std::filesystem::path path) {
+		DirectX::ScratchImage construct(std::filesystem::path path, Texture::Type type) {
 			DirectX::ScratchImage image;
 			debug::verify::com(DirectX::LoadFromWICFile(path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image, nullptr));
 
 			auto& mainImage = *image.GetImages();
 			debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
 			/*
+			DirectX::TEX_COMPRESS_FLAGS flags = DirectX::TEX_COMPRESS_PARALLEL;
+
+			if (type == Texture::Type::BASE_COLOR) {
+				flags |= DirectX::TEX_COMPRESS_SRGB;
+			}
+			else if (type == Texture::Type::NORMAL) {
+				flags |= DirectX::TEX_COMPRESS_UNIFORM;
+			}
+
 			DirectX::CompressOptions options = {
-				.flags = DirectX::TEX_COMPRESS_PARALLEL,
+				.flags = flags,
 				.threshold = DirectX::TEX_THRESHOLD_DEFAULT,
 				.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT,
 			};
@@ -38,18 +48,19 @@ namespace tracer::content {
 			return image;
 		}
 	}
-	Texture::Texture(std::filesystem::path folder, const char* file) : implementation(std::make_unique<Implementation>()) {
+	Texture::Texture(std::filesystem::path folder, const char* file, Type type) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
 		debug::print("File: %s", file);
 		auto path = folder / file;
 
-		implementation->image = construct(path);
+		implementation->type = type;
+		implementation->image = construct(path, implementation->type);
 
 		debug::decrementDepth();
 	}
 
-	Texture::Texture(std::filesystem::path folder, cgltf_image* data) : implementation(std::make_unique<Implementation>()) {
+	Texture::Texture(std::filesystem::path folder, cgltf_image* data, Type type) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
 		std::string uri{ data->uri };
@@ -63,7 +74,9 @@ namespace tracer::content {
 		}
 
 		auto path = folder / uri;
-		implementation->image = construct(path);
+
+		implementation->type = type;
+		implementation->image = construct(path, implementation->type);
 
 		debug::decrementDepth();
 	}

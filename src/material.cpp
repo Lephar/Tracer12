@@ -15,15 +15,6 @@ namespace tracer::content {
 		uint32_t normalIndex;
 	};
 
-	namespace {
-		enum DEFAULT_TEXTURE_INDEX {
-			DEFAULT_TEXTURE_INDEX_BASE_COLOR,
-			DEFAULT_TEXTURE_INDEX_METALLIC_ROUGHNESS,
-			DEFAULT_TEXTURE_INDEX_NORMAL,
-			DEFAULT_TEXTURE_INDEX_MAX_ENUM,
-		};
-	}
-
 	Material::Material() : implementation(std::make_unique<Implementation>()) {
 		implementation->name = std::string{ "Default" };
 		
@@ -35,15 +26,15 @@ namespace tracer::content {
 
 		debug::print("Base color texture:");
 		implementation->baseColorIndex = static_cast<uint32_t>(textures.size());
-		textures.emplace_back(textureFolder, "baseColor.png");
+		textures.emplace_back(textureFolder, "baseColor.png", Texture::Type::BASE_COLOR);
 
 		debug::print("Metallic roughness texture:");
 		implementation->metallicRoughnessIndex = static_cast<uint32_t>(textures.size());
-		textures.emplace_back(textureFolder, "metallicRoughness.png");
+		textures.emplace_back(textureFolder, "metallicRoughness.png", Texture::Type::METALLIC_ROUGHNESS);
 
 		debug::print("Normal texture:");
 		implementation->normalIndex = static_cast<uint32_t>(textures.size());
-		textures.emplace_back(textureFolder, "normal.png");
+		textures.emplace_back(textureFolder, "normal.png", Texture::Type::NORMAL);
 
 		debug::decrementDepth();
 	}
@@ -60,31 +51,31 @@ namespace tracer::content {
 			debug::print("Base color texture:");
 
 			implementation->baseColorIndex = static_cast<uint32_t>(textures.size());
-			textures.emplace_back(folder, data->pbr_metallic_roughness.base_color_texture.texture->image);
+			textures.emplace_back(folder, data->pbr_metallic_roughness.base_color_texture.texture->image, Texture::Type::BASE_COLOR);
 		}
 		else {
 			debug::print("Using default base color texture");
-			implementation->baseColorIndex = DEFAULT_TEXTURE_INDEX_BASE_COLOR;
+			implementation->baseColorIndex = Texture::Type::BASE_COLOR;
 		}
 		if (data->has_pbr_metallic_roughness && data->pbr_metallic_roughness.metallic_roughness_texture.texture && data->pbr_metallic_roughness.metallic_roughness_texture.texture->image) {
 			debug::print("Metallic roughness texture:");
 				
 			implementation->metallicRoughnessIndex = static_cast<uint32_t>(textures.size());
-			textures.emplace_back(folder, data->pbr_metallic_roughness.metallic_roughness_texture.texture->image);
+			textures.emplace_back(folder, data->pbr_metallic_roughness.metallic_roughness_texture.texture->image, Texture::Type::METALLIC_ROUGHNESS);
 		}
 		else {
 			debug::print("Using default metallic roughness texture");
-			implementation->metallicRoughnessIndex = DEFAULT_TEXTURE_INDEX_METALLIC_ROUGHNESS;
+			implementation->metallicRoughnessIndex = Texture::Type::METALLIC_ROUGHNESS;
 		}
 		if (data->normal_texture.texture && data->normal_texture.texture->image) {
 			debug::print("Normal texture:");
 			
 			implementation->normalIndex = static_cast<uint32_t>(textures.size());
-			textures.emplace_back(folder, data->normal_texture.texture->image);
+			textures.emplace_back(folder, data->normal_texture.texture->image, Texture::Type::NORMAL);
 		}
 		else {
 			debug::print("Using default normal texture");
-			implementation->normalIndex = DEFAULT_TEXTURE_INDEX_NORMAL;
+			implementation->normalIndex = Texture::Type::NORMAL;
 		}
 
 		debug::decrementDepth();
@@ -110,7 +101,7 @@ namespace tracer::content {
 			implementation->normalIndex,
 		};
 
-		commandList->SetGraphicsRoot32BitConstants(0, DEFAULT_TEXTURE_INDEX_MAX_ENUM, constants, 1);
+		commandList->SetGraphicsRoot32BitConstants(0, Texture::Type::MAX_ENUM, constants, 1);
 	}
 
 	Material::~Material() = default;

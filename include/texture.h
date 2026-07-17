@@ -8,8 +8,15 @@ namespace tracer::content {
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Texture(std::filesystem::path folder, const char* file);
-		Texture(std::filesystem::path folder, cgltf_image* data);
+		enum Type {
+			BASE_COLOR,
+			METALLIC_ROUGHNESS,
+			NORMAL,
+			MAX_ENUM,
+		};
+
+		Texture(std::filesystem::path folder, const char* file, Type type);
+		Texture(std::filesystem::path folder, cgltf_image* data, Type type);
 
 		Texture(const Texture& texture) = delete;
 		Texture& operator=(const Texture& texture) = delete;

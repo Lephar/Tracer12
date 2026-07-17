@@ -211,6 +211,8 @@ namespace tracer::graphics::swapChain {
 	}
 
 	void destroy(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
+		debug::print("Main loop finished");
+
 		for (auto& image : frameBuffers) {
 			image.signal(commandQueue);
 		}
