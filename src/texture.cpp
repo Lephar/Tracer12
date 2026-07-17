@@ -32,7 +32,7 @@ namespace tracer::content {
 			DirectX::ScratchImage compressedImage;
 			debug::verify::com(DirectX::CompressEx(mainImage, DXGI_FORMAT_BC5_UNORM, options, compressedImage, nullptr));
 
-			image = compressedImage;
+			image = std::move(compressedImage);
 			debug::print("Image compressed");
 			*/
 			return image;

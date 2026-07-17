@@ -48,7 +48,7 @@ VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     
-    output.position = mul(camera.projection, mul(camera.view, mul(mesh.model, input.position)));
+    output.position = mul(camera.projectionView, mul(mesh.model, input.position));
     output.tangent = input.tangent;
     output.normal = input.normal;
     output.texcoord = input.texcoord;

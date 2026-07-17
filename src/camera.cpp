@@ -37,7 +37,7 @@ namespace tracer::content {
 
 		auto view = DirectX::SimpleMath::Matrix{ transform }.Invert();
 		auto projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
-		auto projectionView = projection * view;
+		auto projectionView = view * projection;
 
 		auto& constants = getCameraConstants();
 		implementation->constantIndex = static_cast<uint32_t>(constants.size());
