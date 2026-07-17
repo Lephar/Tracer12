@@ -13,7 +13,7 @@ namespace tracer::content {
 			DirectX::SimpleMath::Vector4 color;
 		};
 
-		static void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		static void bindAll(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 
 		Light(cgltf_light* data, cgltf_float* transform);
 

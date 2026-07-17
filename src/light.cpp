@@ -11,7 +11,7 @@ namespace tracer::content {
 		uint32_t constantIndex;
 	};
 
-	void Light::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Light::bindAll(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		const auto lightCount = static_cast<uint32_t>(getLights().size());
 		const auto lightConstantBufferView = getCurrentConstantBufferView() + getLightConstantsOffset();
 
