@@ -53,23 +53,20 @@ namespace tracer::graphics {
 		}
 	}
 
-	void FrameBuffer::begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void FrameBuffer::begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView) {
+		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		
 		debug::verify::com(implementation->commandAllocator->Reset());
 		debug::verify::com(commandList->Reset(implementation->commandAllocator.Get(), nullptr));
-
+		
 		commandList->ResourceBarrier(1, &implementation->renderBarrier);
+		commandList->OMSetRenderTargets(1, &implementation->renderTargetView, false, &depthStencilView);
+		commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
+		commandList->ClearRenderTargetView(implementation->renderTargetView, clearColor, 0, nullptr);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Resource2> FrameBuffer::getConstantBuffer() {
 		return implementation->constantBuffer;
-	}
-
-	void FrameBuffer::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView) {
-		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-		commandList->OMSetRenderTargets(1, &implementation->renderTargetView, false, &depthStencilView);
-		commandList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 0.0f, 0, 0, nullptr);
-		commandList->ClearRenderTargetView(implementation->renderTargetView, clearColor, 0, nullptr);
 	}
 	
 	void FrameBuffer::end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {

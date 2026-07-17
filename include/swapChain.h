@@ -24,7 +24,6 @@ namespace tracer::graphics::swapChain {
 
 	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer();
-	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 	void present(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue);
 

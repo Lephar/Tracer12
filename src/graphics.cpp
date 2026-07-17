@@ -85,7 +85,6 @@ namespace tracer::graphics {
 
 		swapChain::begin(commandList, fenceEvent);
 		pipeline->bind(commandList);
-		swapChain::bind(commandList);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer() {

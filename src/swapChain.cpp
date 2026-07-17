@@ -189,18 +189,14 @@ namespace tracer::graphics::swapChain {
 		auto& frameBuffer = frameBuffers.at(imageIndex);
 
 		frameBuffer.wait(commandList, fenceEvent);
-		frameBuffer.begin(commandList);
+		frameBuffer.begin(commandList, depthStencilView);
+
+		commandList->RSSetViewports(1, &viewport);
+		commandList->RSSetScissorRects(1, &scissor);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer() {
 		return frameBuffers.at(imageIndex).getConstantBuffer();
-	}
-
-	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		commandList->RSSetViewports(1, &viewport);
-		commandList->RSSetScissorRects(1, &scissor);
-
-		frameBuffers.at(imageIndex).bind(commandList, depthStencilView);
 	}
 
 	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {

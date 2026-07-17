@@ -21,9 +21,8 @@ namespace tracer::graphics {
 		void setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
 		
 		void wait(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
-		void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
 		Microsoft::WRL::ComPtr<ID3D12Resource2> getConstantBuffer();
-		void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
 		void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 		void signal(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue);
 		
