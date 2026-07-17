@@ -33,6 +33,8 @@ namespace tracer {
 			graphics::beginCommand();
 			content::recordUpload(commandList);
 			graphics::endCommand();
+
+			content::clearStaging();
 		}
 
 		void loop() {

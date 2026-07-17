@@ -19,6 +19,7 @@ namespace tracer::content {
 
 		void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_CPU_DESCRIPTOR_HANDLE textureView);
 		void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void clearStaging();
 
 		~Texture();
 	};

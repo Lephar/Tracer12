@@ -52,11 +52,15 @@ namespace tracer::content {
 	Texture::Texture(std::filesystem::path folder, cgltf_image* data) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
-		debug::print("Name: %s", data->name);
-
 		std::string uri{ data->uri };
 		std::replace(uri.begin(), uri.end(), '/', '\\');
-		debug::print("Path: %s", uri.c_str());
+
+		if (data->name) {
+			debug::print("Name: %s", data->name);
+		}
+		else {
+			debug::print("Path: %s", uri.c_str());
+		}
 
 		auto path = folder / uri;
 		implementation->image = construct(path);
@@ -115,6 +119,14 @@ namespace tracer::content {
 		auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		commandList->ResourceBarrier(1, &barrier);
 		debug::print("Resource barrier recorded");
+	}
+
+	void Texture::clearStaging() {
+		implementation->buffer.Reset();
+		implementation->subresources.clear();
+		implementation->image.Release();
+
+		debug::print("Staging resources cleaned up");
 	}
 
 	Texture::~Texture() = default;

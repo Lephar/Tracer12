@@ -275,6 +275,31 @@ namespace tracer::content {
 		//debug::activate();
 	}
 
+	void clearStaging() {
+		debug::print("Cleaning up staging resources:");
+		debug::incrementDepth();
+
+		for (uint32_t textureIndex = 0; textureIndex < textures.size(); textureIndex++) {
+			debug::print("Texture: %u", textureIndex);
+			debug::incrementDepth();
+
+			auto& texture = textures.at(textureIndex);
+			texture.clearStaging();
+
+			debug::decrementDepth();
+		}
+
+		indices.clear();
+		vertices.clear();
+
+		stagingIndexBuffer.Reset();
+		stagingVertexBuffer.Reset();
+
+		debug::print("Staging index and vertex resources cleaned up");
+
+		debug::decrementDepth();
+	}
+
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView() {
 		return currentConstantBufferView;
 	}

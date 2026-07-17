@@ -41,6 +41,7 @@ namespace tracer::content {
 	
 	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device);
 	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+	void clearStaging();
 
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView();
 	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
