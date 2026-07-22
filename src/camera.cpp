@@ -13,6 +13,8 @@ namespace tracer::content {
 		float nearPlane;
 		float farPlane;
 
+		DirectX::SimpleMath::Matrix transform;
+
 		uint32_t constantIndex;
 	};
 
@@ -35,12 +37,16 @@ namespace tracer::content {
 		implementation->farPlane = perspective.has_zfar ? perspective.zfar : perspective.znear * 1024.0f;
 		debug::print("Far plane:     %g", implementation->farPlane);
 
+		auto matrix = DirectX::SimpleMath::Matrix{ transform };
+		auto translation = DirectX::SimpleMath::Vector4::Transform(DirectX::SimpleMath::Vector4::UnitW, matrix);
+		implementation->transform = DirectX::SimpleMath::Matrix::CreateTranslation(translation.x, translation.y, translation.z);
+		
 		auto& constants = getCameraConstants();
 		implementation->constantIndex = static_cast<uint32_t>(constants.size());
 		constants.push_back(Camera::Constant{});
 
 		auto& constant = constants.back();
-		constant.view = DirectX::SimpleMath::Matrix{ transform }.Invert();
+		constant.view = implementation->transform.Invert();
 
 		debug::decrementDepth();
 	}
@@ -60,9 +66,11 @@ namespace tracer::content {
 		constant.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
 	}
 
-	void Camera::update(DirectX::SimpleMath::Matrix view) {
+	void Camera::update(DirectX::SimpleMath::Matrix transform, DirectX::SimpleMath::Matrix view) {
 		auto& constant = getCameraConstants().at(implementation->constantIndex);
+
 		constant.projectionView = constant.view * view * constant.projection;
+		constant.position = DirectX::SimpleMath::Vector4::Transform(DirectX::SimpleMath::Vector4::UnitW, transform * implementation->transform);
 	}
 
 	void Camera::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {

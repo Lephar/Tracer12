@@ -18,10 +18,10 @@ namespace tracer::graphics {
 		descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, textureCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
 
 		CD3DX12_ROOT_PARAMETER1 rootParameters[5];
-		rootParameters[0].InitAsConstants(4, 0, 0, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
 		rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-		rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-		rootParameters[3].InitAsConstantBufferView(3, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+		rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+		rootParameters[3].InitAsConstants(4, 3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
 		rootParameters[4].InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_PIXEL);
 		const uint32_t rootParameterCount = sizeof(rootParameters) / sizeof(CD3DX12_ROOT_PARAMETER1);
 

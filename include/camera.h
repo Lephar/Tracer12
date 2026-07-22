@@ -12,6 +12,8 @@ namespace tracer::content {
 			DirectX::SimpleMath::Matrix view;
 			DirectX::SimpleMath::Matrix projection;
 			DirectX::SimpleMath::Matrix projectionView;
+			DirectX::SimpleMath::Vector4 position;
+			DirectX::SimpleMath::Vector4 properties;
 		};
 
 		Camera(cgltf_camera* data, cgltf_float* transform);
@@ -23,7 +25,7 @@ namespace tracer::content {
 		Camera& operator=(Camera&& camera) noexcept;
 
 		void adjust(float aspectRatio);
-		void update(DirectX::SimpleMath::Matrix view);
+		void update(DirectX::SimpleMath::Matrix transform, DirectX::SimpleMath::Matrix view);
 		void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 
 		~Camera();

@@ -19,24 +19,24 @@ namespace tracer::content {
 	std::vector<Asset>& getAssets();
 	std::vector<Material>& getMaterials();
 	std::vector<Texture>& getTextures();
+	std::vector<Mesh>& getMeshes();
 	std::vector<Camera>& getCameras();
 	std::vector<Light>& getLights();
-	std::vector<Mesh>& getMeshes();
 	std::vector<Primitive>& getPrimitives();
 
+	std::vector<Mesh::Constant>& getMeshConstants();
 	std::vector<Camera::Constant>& getCameraConstants();
 	std::vector<Light::Constant>& getLightConstants();
-	std::vector<Mesh::Constant>& getMeshConstants();
 
 	std::vector<Primitive::Index>& getIndices();
 	std::vector<Primitive::Vertex>& getVertices();
 
+	uint32_t getMeshConstantAlignment();
 	uint32_t getCameraConstantAlignment();
 	uint32_t getLightConstantAlignment();
-	uint32_t getMeshConstantAlignment();
+	uint32_t getMeshConstantsOffset();
 	uint32_t getCameraConstantsOffset();
 	uint32_t getLightConstantsOffset();
-	uint32_t getMeshConstantsOffset();
 	uint32_t getConstantBufferSize();
 	
 	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device);

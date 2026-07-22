@@ -20,7 +20,11 @@ namespace tracer::content {
 		auto& constants = getMeshConstants();
 		
 		implementation->constantIndex = static_cast<uint32_t>(constants.size());
-		constants.emplace_back(DirectX::SimpleMath::Matrix{ transform });
+
+		auto model = DirectX::SimpleMath::Matrix{ transform };
+		auto normal = model.Invert().Transpose();
+
+		constants.emplace_back(model, normal);
 
 		auto& primitives = getPrimitives();
 		
@@ -49,7 +53,7 @@ namespace tracer::content {
 	
 	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
-		commandList->SetGraphicsRootConstantBufferView(3, constantBufferView);
+		commandList->SetGraphicsRootConstantBufferView(0, constantBufferView);
 
 		auto& primitives = getPrimitives();
 

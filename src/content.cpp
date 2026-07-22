@@ -12,14 +12,14 @@ namespace tracer::content {
 		std::vector<Asset> assets = {};
 		std::vector<Material> materials = {};
 		std::vector<Texture> textures = {};
+		std::vector<Mesh> meshes = {};
 		std::vector<Camera> cameras = {};
 		std::vector<Light> lights = {};
-		std::vector<Mesh> meshes = {};
 		std::vector<Primitive> primitives = {};
 
+		std::vector<Mesh::Constant> meshConstants = {};
 		std::vector<Camera::Constant> cameraConstants = {};
 		std::vector<Light::Constant> lightConstants = {};
-		std::vector<Mesh::Constant> meshConstants = {};
 
 		std::vector<Primitive::Index> indices = {};
 		std::vector<Primitive::Vertex> vertices = {};
@@ -28,17 +28,17 @@ namespace tracer::content {
 
 		uint32_t defaultCameraIndex = UINT32_MAX;
 
+		uint32_t meshConstantAlignment = UINT32_MAX;
 		uint32_t cameraConstantAlignment = UINT32_MAX;
 		uint32_t lightConstantAlignment = UINT32_MAX;
-		uint32_t meshConstantAlignment = UINT32_MAX;
 
+		uint32_t meshConstantsSize = UINT32_MAX;
 		uint32_t cameraConstantsSize = UINT32_MAX;
 		uint32_t lightConstantsSize = UINT32_MAX;
-		uint32_t meshConstantsSize = UINT32_MAX;
 
+		uint32_t meshConstantsOffset = UINT32_MAX;
 		uint32_t cameraConstantsOffset = UINT32_MAX;
 		uint32_t lightConstantsOffset = UINT32_MAX;
-		uint32_t meshConstantsOffset = UINT32_MAX;
 
 		uint32_t constantBufferSize = UINT32_MAX;
 
@@ -58,8 +58,6 @@ namespace tracer::content {
 	}
 
 	void load(std::filesystem::path dataFolder, float aspectRatio) {
-		//debug::deactivate();
-
 		debug::print("Loading content:");
 		debug::incrementDepth();
 
@@ -74,24 +72,22 @@ namespace tracer::content {
 		}
 
 		defaultCameraIndex = 0;
-		
-		cameraConstantAlignment = static_cast<uint32_t>(align(sizeof(Camera::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
-		lightConstantAlignment = static_cast<uint32_t>(align(sizeof(Light::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
-		meshConstantAlignment = static_cast<uint32_t>(align(sizeof(Mesh::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 
-		cameraConstantsSize = static_cast<uint32_t>(cameraConstants.size() * cameraConstantAlignment);
-		lightConstantsSize = static_cast<uint32_t>(lightConstants.size() * lightConstantAlignment);
+		meshConstantsOffset = 0;
+		meshConstantAlignment = static_cast<uint32_t>(align(sizeof(Mesh::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 		meshConstantsSize = static_cast<uint32_t>(meshConstants.size() * meshConstantAlignment);
 
-		cameraConstantsOffset = 0;
-		lightConstantsOffset = cameraConstantsSize;
-		meshConstantsOffset = lightConstantsOffset + lightConstantsSize;
+		cameraConstantsOffset = meshConstantsOffset + meshConstantsSize;
+		cameraConstantAlignment = static_cast<uint32_t>(align(sizeof(Camera::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
+		cameraConstantsSize = static_cast<uint32_t>(cameraConstants.size() * cameraConstantAlignment);
 
-		constantBufferSize = static_cast<uint32_t>(align(cameraConstantsSize + lightConstantsSize + meshConstantsSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
+		lightConstantsOffset = cameraConstantsOffset + cameraConstantsSize;
+		lightConstantAlignment = static_cast<uint32_t>(sizeof(Light::Constant));
+		lightConstantsSize = static_cast<uint32_t>(align(lightConstants.size() * lightConstantAlignment, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
+
+		constantBufferSize = static_cast<uint32_t>(align(lightConstantsOffset + lightConstantsSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
 
 		debug::decrementDepth();
-
-		//debug::activate();
 	}
 
 	std::filesystem::path getAssetFolder() {
@@ -109,6 +105,10 @@ namespace tracer::content {
 	std::vector<Texture>& getTextures() {
 		return textures;
 	}
+
+	std::vector<Mesh>& getMeshes() {
+		return meshes;
+	}
 	
 	std::vector<Camera>& getCameras() {
 		return cameras;
@@ -118,12 +118,12 @@ namespace tracer::content {
 		return lights;
 	}
 	
-	std::vector<Mesh>& getMeshes() {
-		return meshes;
-	}
-	
 	std::vector<Primitive>& getPrimitives() {
 		return primitives;
+	}
+
+	std::vector<Mesh::Constant>& getMeshConstants() {
+		return meshConstants;
 	}
 	
 	std::vector<Camera::Constant>& getCameraConstants() {
@@ -134,16 +134,16 @@ namespace tracer::content {
 		return lightConstants;
 	}
 	
-	std::vector<Mesh::Constant>& getMeshConstants() {
-		return meshConstants;
-	}
-	
 	std::vector<Primitive::Index>& getIndices() {
 		return indices;
 	}
 	
 	std::vector<Primitive::Vertex>& getVertices() {
 		return vertices;
+	}
+
+	uint32_t getMeshConstantAlignment() {
+		return meshConstantAlignment;
 	}
 
 	uint32_t getCameraConstantAlignment() {
@@ -154,8 +154,8 @@ namespace tracer::content {
 		return lightConstantAlignment;
 	}
 
-	uint32_t getMeshConstantAlignment() {
-		return meshConstantAlignment;
+	uint32_t getMeshConstantsOffset() {
+		return meshConstantsOffset;
 	}
 
 	uint32_t getCameraConstantsOffset() {
@@ -166,17 +166,11 @@ namespace tracer::content {
 		return lightConstantsOffset;
 	}
 
-	uint32_t getMeshConstantsOffset() {
-		return meshConstantsOffset;
-	}
-
 	uint32_t getConstantBufferSize() {
 		return constantBufferSize;
 	}
 
 	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device) {
-		//debug::deactivate();
-		
 		debug::print("Creating content resources:");
 		debug::incrementDepth();
 
@@ -233,13 +227,9 @@ namespace tracer::content {
 		debug::print("Vertex buffer view set");
 
 		debug::decrementDepth();
-
-		//debug::activate();
 	}
 
 	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		//debug::deactivate();
-
 		debug::print("Recording content upload:");
 		debug::incrementDepth();
 
@@ -283,8 +273,6 @@ namespace tracer::content {
 		debug::print("Buffer barriers recorded");
 
 		debug::decrementDepth();
-
-		//debug::activate();
 	}
 
 	void clearStaging() {
@@ -332,8 +320,10 @@ namespace tracer::content {
 		position += keyboardMovement.y * up;
 		position += keyboardMovement.z * forward;
 
+		auto transform = DirectX::SimpleMath::Matrix::CreateTranslation(position.x, position.y, position.z);
 		auto view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, up);
-		cameras.at(defaultCameraIndex).update(view);
+
+		cameras.at(defaultCameraIndex).update(transform, view);
 	}
 
 	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
@@ -341,16 +331,16 @@ namespace tracer::content {
 		uint8_t* constantBufferMemory;
 		debug::verify::com(constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferMemory)));
 
+		for (uint32_t meshIndex = 0; meshIndex < meshConstants.size(); meshIndex++) {
+			memcpy(constantBufferMemory + meshConstantsOffset + meshIndex * meshConstantAlignment, &meshConstants.at(meshIndex), sizeof(Mesh::Constant));
+		}
+
 		for (uint32_t cameraIndex = 0; cameraIndex < cameraConstants.size(); cameraIndex++) {
 			memcpy(constantBufferMemory + cameraConstantsOffset + cameraIndex * cameraConstantAlignment, &cameraConstants.at(cameraIndex), sizeof(Camera::Constant));
 		}
 
 		for (uint32_t lightIndex = 0; lightIndex < lightConstants.size(); lightIndex++) {
 			memcpy(constantBufferMemory + lightConstantsOffset + lightIndex * lightConstantAlignment, &lightConstants.at(lightIndex), sizeof(Light::Constant));
-		}
-
-		for (uint32_t meshIndex = 0; meshIndex < meshConstants.size(); meshIndex++) {
-			memcpy(constantBufferMemory + meshConstantsOffset + meshIndex * meshConstantAlignment, &meshConstants.at(meshIndex), sizeof(Mesh::Constant));
 		}
 
 		constantBuffer->Unmap(0, nullptr);

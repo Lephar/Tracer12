@@ -101,7 +101,7 @@ namespace tracer::content {
 			implementation->normalIndex,
 		};
 
-		commandList->SetGraphicsRoot32BitConstants(0, Texture::Type::MAX_ENUM, constants, 1);
+		commandList->SetGraphicsRoot32BitConstants(3, Texture::Type::MAX_ENUM, constants, 1);
 	}
 
 	Material::~Material() = default;

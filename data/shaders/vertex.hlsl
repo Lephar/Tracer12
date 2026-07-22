@@ -8,10 +8,18 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-    float4 position : SV_POSITION;
+    float4 output : SV_POSITION;
+    float3 position : POSITION;
     float4 tangent : TANGENT;
-    float4 normal : NORMAL;
-    float4 texcoord : TEXCOORD;
+    float3 normal : NORMAL;
+    float2 texcoord0 : TEXCOORD0;
+    float2 texcoord1 : TEXCOORD1;
+};
+
+struct Mesh
+{
+    float4x4 model;
+    float4x4 normal;
 };
 
 struct Camera
@@ -19,39 +27,26 @@ struct Camera
     float4x4 view;
     float4x4 projection;
     float4x4 projectionView;
-};
-
-struct Light
-{
     float4 position;
-    float4 color;
+    float4 properties;
 };
 
-struct Mesh
-{
-    float4x4 model;
-};
-
-cbuffer Constants : register(b0)
-{
-    uint lightCount;
-    uint baseColorIndex;
-    uint metallicRoughnessIndex;
-    uint normalIndex;
-};
-
+ConstantBuffer<Mesh> mesh : register(b0);
 ConstantBuffer<Camera> camera : register(b1);
-ConstantBuffer<Light> lights[] : register(b2);
-ConstantBuffer<Mesh> mesh : register(b3);
 
 VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     
-    output.position = mul(camera.projectionView, mul(mesh.model, input.position));
+    float4 position = mul(mesh.model, input.position);
+    
+    output.position = position.xyz;
     output.tangent = input.tangent;
-    output.normal = input.normal;
-    output.texcoord = input.texcoord;
+    output.normal = mul(mesh.normal, input.normal).xyz;
+    output.texcoord0 = input.texcoord.xy;
+    output.texcoord1 = input.texcoord.zw;
+    
+    output.output = mul(camera.projectionView, position);
     
     return output;
 }

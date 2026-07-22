@@ -10,6 +10,7 @@ namespace tracer::content {
 	public:
 		struct Constant {
 			DirectX::SimpleMath::Matrix model;
+			DirectX::SimpleMath::Matrix normal;
 		};
 
 		Mesh(cgltf_mesh* data, cgltf_float* transform);
