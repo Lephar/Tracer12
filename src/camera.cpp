@@ -47,6 +47,12 @@ namespace tracer::content {
 
 		auto& constant = constants.back();
 		constant.view = implementation->transform.Invert();
+		constant.properties = {
+			implementation->fieldOfView,
+			implementation->aspectRatio,
+			implementation->nearPlane,
+			implementation->farPlane,
+		};
 
 		debug::decrementDepth();
 	}
@@ -63,6 +69,7 @@ namespace tracer::content {
 		auto& constant = constants.at(implementation->constantIndex);
 
 		implementation->aspectRatio = aspectRatio;
+		constant.properties.y = implementation->aspectRatio;
 		constant.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
 	}
 
