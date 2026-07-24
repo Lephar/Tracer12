@@ -1,3 +1,6 @@
+[submodule "data/assets/Default"]
+	path = data/assets/Default
+	url = git@github.com:Lephar/Default.git
 [submodule "data/assets/Sponza"]
 	path = data/assets/Sponza
 	url = git@github.com:Lephar/Sponza.git

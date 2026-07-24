@@ -23,11 +23,11 @@
 #include <wincodec.h>
 
 // DirectX
-#include <dxcapi.h>
 #include <dxgi1_6.h>
+#include <dxcapi.h>
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
-#include <d3dx12.h>
+#include <d3dx12/d3dx12.h>
 #include <directxtk12/DescriptorHeap.h>
 #include <directxtk12/CommonStates.h>
 #include <directxtk12/SimpleMath.h>
