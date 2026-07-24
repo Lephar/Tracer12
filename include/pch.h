@@ -28,12 +28,12 @@
 #include <d3d12.h>
 #include <d3d12sdklayers.h>
 #include <d3dx12.h>
-#include <DescriptorHeap.h>
-#include <CommonStates.h>
-#include <SimpleMath.h>
-#include <Mouse.h>
-#include <Keyboard.h>
+#include <directxtk12/DescriptorHeap.h>
+#include <directxtk12/CommonStates.h>
+#include <directxtk12/SimpleMath.h>
+#include <directxtk12/Mouse.h>
+#include <directxtk12/Keyboard.h>
 #include <DirectXTex.h>
 
 // External
-#include "cgltf/cgltf.h"
+#include <cgltf.h>

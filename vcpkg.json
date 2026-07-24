@@ -1,0 +1,24 @@
+{
+  "dependencies": [
+    {
+      "name": "directxmath",
+      "features": [
+        "dx12"
+      ]
+    },
+    {
+      "name": "directxmesh",
+      "features": [
+        "dx12"
+      ]
+    },
+    {
+      "name": "directxtex",
+      "features": [
+        "dx12"
+      ]
+    },
+    "directxtk12",
+    "cgltf"
+  ]
+}

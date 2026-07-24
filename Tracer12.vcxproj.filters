@@ -21,6 +21,8 @@
     <None Include=".gitignore" />
     <None Include=".gitmodules" />
     <None Include="README.md" />
+    <None Include="vcpkg.json" />
+    <None Include="vcpkg-configuration.json" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -110,12 +112,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\swapChain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="external\include\cgltf\cgltf.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="external\include\cgltf\cgltf_write.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\frameBuffer.h">
