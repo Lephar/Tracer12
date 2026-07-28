@@ -16,12 +16,12 @@ namespace tracer::content {
 	};
 
 	Material::Material() : implementation(std::make_unique<Implementation>()) {
-		implementation->name = std::string{ "Default" };
+		implementation->name = std::string{ "default" };
 		
 		debug::print("Material: %s", implementation->name.c_str());
 		debug::incrementDepth();
 		
-		auto textureFolder = getAssetFolder() / implementation->name / "textures";
+		auto textureFolder = getAssetFolder() / implementation->name / "textures\\png";
 		auto& textures = getTextures();
 
 		debug::print("Base color texture:");

@@ -65,7 +65,7 @@ namespace tracer::content {
 		debug::print("Asset folder set: %s", assetFolder.string().c_str());
 
 		materials.resize(1);
-		assets.emplace_back("Sponza", "Sponza_Main.gltf");
+		assets.emplace_back("sponza", "sponza.gltf");
 		
 		for (auto& camera : cameras) {
 			camera.adjust(aspectRatio);
