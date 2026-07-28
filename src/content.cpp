@@ -64,7 +64,7 @@ namespace tracer::content {
 		assetFolder = dataFolder / "assets";
 		debug::print("Asset folder set: %s", assetFolder.string().c_str());
 
-		materials.resize(1);
+		materials.emplace_back(assetFolder / "default", nullptr, nullptr);		
 		assets.emplace_back("sponza", "sponza.gltf");
 		
 		for (auto& camera : cameras) {

@@ -34,12 +34,14 @@ namespace tracer::content {
 		auto& materials = getMaterials();
 		implementation->materialOffset = static_cast<uint32_t>(materials.size());
 
+		cgltf_image* images = data->images;
+
 		for (cgltf_size materialIndex = 0; materialIndex < data->materials_count; materialIndex++) {
 			cgltf_material* materialData = &data->materials[materialIndex];
-			materials.emplace_back(folderPath, materialData);
+			materials.emplace_back(folderPath, materialData, images);
 		}
 
-		auto& scene = data->scene;
+		cgltf_scene* scene = data->scene;
 		implementation->nodes.reserve(scene->nodes_count);
 
 		for (cgltf_size nodeIndex = 0; nodeIndex < scene->nodes_count; nodeIndex++) {

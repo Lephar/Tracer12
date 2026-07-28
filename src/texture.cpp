@@ -8,7 +8,6 @@
 
 namespace tracer::content {
 	struct Texture::Implementation {
-		Type type;
 		DirectX::ScratchImage image;
 		std::vector<D3D12_SUBRESOURCE_DATA> subresources;
 		Microsoft::WRL::ComPtr<ID3D12Resource2> buffer;
@@ -16,67 +15,13 @@ namespace tracer::content {
 		D3D12_CPU_DESCRIPTOR_HANDLE view;
 	};
 
-	namespace {
-		DirectX::ScratchImage construct(std::filesystem::path path, Texture::Type type) {
-			DirectX::ScratchImage image;
-			debug::verify::com(DirectX::LoadFromWICFile(path.wstring().c_str(), DirectX::WIC_FLAGS_NONE, nullptr, image, nullptr));
-
-			auto& mainImage = *image.GetImages();
-			debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
-			/*
-			DirectX::TEX_COMPRESS_FLAGS flags = DirectX::TEX_COMPRESS_PARALLEL;
-
-			if (type == Texture::Type::BASE_COLOR) {
-				flags |= DirectX::TEX_COMPRESS_SRGB;
-			}
-			else if (type == Texture::Type::NORMAL) {
-				flags |= DirectX::TEX_COMPRESS_UNIFORM;
-			}
-
-			DirectX::CompressOptions options = {
-				.flags = flags,
-				.threshold = DirectX::TEX_THRESHOLD_DEFAULT,
-				.alphaWeight = DirectX::TEX_ALPHA_WEIGHT_DEFAULT,
-			};
-
-			DirectX::ScratchImage compressedImage;
-			debug::verify::com(DirectX::CompressEx(mainImage, DXGI_FORMAT_BC5_UNORM, options, compressedImage, nullptr));
-
-			image = std::move(compressedImage);
-			debug::print("Image compressed");
-			*/
-			return image;
-		}
-	}
-	Texture::Texture(std::filesystem::path folder, const char* file, Type type) : implementation(std::make_unique<Implementation>()) {
+	Texture::Texture(LPCWSTR path) : implementation(std::make_unique<Implementation>()) {
 		debug::incrementDepth();
 
-		debug::print("File: %s", file);
-		auto path = folder / file;
+		debug::verify::com(DirectX::LoadFromDDSFileEx(path, DirectX::DDS_FLAGS_NONE, nullptr, nullptr, implementation->image));
 
-		implementation->type = type;
-		implementation->image = construct(path, implementation->type);
-
-		debug::decrementDepth();
-	}
-
-	Texture::Texture(std::filesystem::path folder, cgltf_image* data, Type type) : implementation(std::make_unique<Implementation>()) {
-		debug::incrementDepth();
-
-		std::string uri{ data->uri };
-		std::replace(uri.begin(), uri.end(), '/', '\\');
-
-		if (data->name) {
-			debug::print("Name: %s", data->name);
-		}
-		else {
-			debug::print("Path: %s", uri.c_str());
-		}
-
-		auto path = folder / uri;
-
-		implementation->type = type;
-		implementation->image = construct(path, implementation->type);
+		auto& mainImage = *implementation->image.GetImages();
+		debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
 
 		debug::decrementDepth();
 	}

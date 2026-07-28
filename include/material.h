@@ -8,8 +8,7 @@ namespace tracer::content {
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
-		Material();
-		Material(std::filesystem::path folder, cgltf_material* data);
+		Material(std::filesystem::path folder, cgltf_material* data, cgltf_image* images);
 
 		Material(const Material& material) = delete;
 		Material& operator=(const Material& material) = delete;
