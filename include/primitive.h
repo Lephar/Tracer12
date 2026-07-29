@@ -25,7 +25,7 @@ namespace tracer::content {
 		Primitive(Primitive&& primitive) noexcept;
 		Primitive& operator=(Primitive&& primitive) noexcept;
 
-		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent);
 
 		~Primitive();
 	};

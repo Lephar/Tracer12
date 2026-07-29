@@ -324,7 +324,7 @@ namespace tracer::content {
 		return currentConstantBufferView;
 	}
 	
-	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement) {
+	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
 		const auto turnSpeed = 1.0f;
 		const auto moveSpeed = 4.0f;
 
@@ -344,9 +344,7 @@ namespace tracer::content {
 		auto view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, up);
 
 		cameras.at(defaultCameraIndex).update(transform, view);
-	}
 
-	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
 		CD3DX12_RANGE readRange(0, 0);
 		uint8_t* constantBufferMemory;
 		debug::verify::com(constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferMemory)));
@@ -369,7 +367,9 @@ namespace tracer::content {
 
 		constantBuffer->Unmap(0, nullptr);
 		currentConstantBufferView = constantBuffer->GetGPUVirtualAddress();
+	}
 
+	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
 		const auto descriptorHeap = shaderResourceDescriptorHeap->Heap();
 		const auto descriptorTable = shaderResourceDescriptorHeap->GetFirstGpuHandle();
 		
@@ -383,7 +383,7 @@ namespace tracer::content {
 		Light::bindAll(commandList);
 
 		for (auto& asset : assets) {
-			asset.draw(commandList);
+			asset.draw(commandList, transparent);
 		}
 	}
 }

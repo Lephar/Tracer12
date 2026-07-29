@@ -10,6 +10,8 @@ namespace tracer::content {
 	struct Material::Implementation {
 		std::string name;
 
+		bool isTransparent;
+
 		uint32_t baseColorIndex;
 		uint32_t metallicRoughnessIndex;
 		uint32_t normalIndex;
@@ -51,6 +53,8 @@ namespace tracer::content {
 		debug::print("Material: %s", implementation->name.c_str());
 		debug::incrementDepth();
 
+		implementation->isTransparent = false;
+
 		implementation->baseColorIndex = 0;
 		implementation->metallicRoughnessIndex = 1;
 		implementation->normalIndex = 2;
@@ -64,6 +68,10 @@ namespace tracer::content {
 		DirectX::SimpleMath::Vector3 metallicRoughnessNormalFactor = { 1.0f, 1.0f, 1.0f };
 
 		if (data) {
+			if (data->alpha_mode == cgltf_alpha_mode_blend) {
+				implementation->isTransparent = true;
+			}
+
 			if (data->has_pbr_metallic_roughness) {
 				auto& materialData = data->pbr_metallic_roughness;
 
@@ -157,6 +165,10 @@ namespace tracer::content {
 		return implementation->name == name;
 	}
 
+	bool Material::isTransparent() {
+		return implementation->isTransparent;
+	}
+	
 	void Material::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		auto constantBufferView = getCurrentConstantBufferView() + getMaterialConstantsOffset() + getMaterialConstantAlignment() * implementation->constantIndex;
 

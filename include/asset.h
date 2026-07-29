@@ -16,7 +16,7 @@ namespace tracer::content {
 		Asset(Asset&& asset) noexcept;
 		Asset& operator=(Asset&& asset) noexcept;
 
-		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent);
 
 		~Asset();
 	};

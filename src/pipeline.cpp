@@ -94,6 +94,20 @@ namespace tracer::graphics {
 
 		const auto inputElementDescCount = sizeof(inputElementDescs) / sizeof(D3D12_INPUT_ELEMENT_DESC);
 		
+		auto blendState = DirectX::CommonStates::AlphaBlend;
+		auto& blendDesc = blendState.RenderTarget[0];
+
+		blendDesc.BlendEnable = true;
+		blendDesc.LogicOpEnable = false;
+		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
+		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;
+		blendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;
+		blendDesc.DestBlendAlpha = D3D12_BLEND_ZERO;
+		blendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD;
+		blendDesc.LogicOp = D3D12_LOGIC_OP_NOOP;
+		blendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc = {
 			.pRootSignature = implementation->rootSignature.Get(),
 			.VS = {
@@ -104,8 +118,8 @@ namespace tracer::graphics {
 				.pShaderBytecode = pixelShader->GetBufferPointer(),
 				.BytecodeLength = pixelShader->GetBufferSize(),
 			},
-			.BlendState = DirectX::CommonStates::NonPremultiplied,
-			.SampleMask = UINT_MAX,
+			.BlendState = blendState,
+			.SampleMask = UINT32_MAX,
 			.RasterizerState = DirectX::CommonStates::CullClockwise,
 			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,
 			.InputLayout = {

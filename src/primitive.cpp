@@ -147,11 +147,13 @@ namespace tracer::content {
 		return *this;
 	}
 
-	void Primitive::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Primitive::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
 		auto& material = getMaterials().at(implementation->materialIndex);
-		material.bind(commandList);
 
-		commandList->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
+		if (transparent == material.isTransparent()) {
+			material.bind(commandList);
+			commandList->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
+		}
 	}
 
 	Primitive::~Primitive() = default;

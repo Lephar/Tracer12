@@ -61,9 +61,9 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Asset::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Asset::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
 		for (auto& node : implementation->nodes) {
-			node.draw(commandList);
+			node.draw(commandList, transparent);
 		}
 	}
 	

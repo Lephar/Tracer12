@@ -64,7 +64,7 @@ PS_OUTPUT main(PS_INPUT input)
 
     float specularFalloff = 32.0f;
     
-    float3 ambient = float3(0.1f, 0.1f, 0.1f);
+    float3 ambient = float3(0.2f, 0.2f, 0.2f);
     float3 diffuse = float3(0.0f, 0.0f, 0.0f);
     float3 specular = float3(0.0f, 0.0f, 0.0f);
     
@@ -98,13 +98,12 @@ PS_OUTPUT main(PS_INPUT input)
     }
 
     float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, input.texcoord0);
-    float3 color = material.baseColorFactor.rgb * pixel.rgb;
+    float3 color = float3(material.baseColorFactor.r * pixel.r, material.baseColorFactor.g * pixel.g, material.baseColorFactor.b * pixel.b);
     float alpha = material.baseColorFactor.a * pixel.a;
     
     PS_OUTPUT output;
     
-    //output.color = float4((ambient + diffuse + specular) * color, alpha);
-    output.color = float4(color, alpha);
+    output.color = float4((ambient + diffuse + specular) * color, alpha);
     
     return output;
 }

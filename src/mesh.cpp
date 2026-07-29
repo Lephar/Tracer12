@@ -51,14 +51,15 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
 		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
 		commandList->SetGraphicsRootConstantBufferView(0, constantBufferView);
 
 		auto& primitives = getPrimitives();
 
 		for (uint32_t primitiveIndex = 0; primitiveIndex < implementation->primitiveCount; primitiveIndex++) {
-			primitives.at(implementation->primitiveBegin + primitiveIndex).draw(commandList);
+			auto& primitive = primitives.at(implementation->primitiveBegin + primitiveIndex);
+			primitive.draw(commandList, transparent);
 		}
 	}
 	

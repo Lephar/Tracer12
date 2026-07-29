@@ -47,12 +47,15 @@ namespace tracer {
 				const auto mouseMovement = system::getMouseMovement();
 				const auto keyboardMovement = system::getKeyboardMovement();
 
-				content::update(mouseMovement, keyboardMovement);
 
 				graphics::beginFrame();
+
 				const auto constantBuffer = graphics::getCurrentConstantBuffer();
-				
-				content::draw(commandList, constantBuffer);
+				content::update(mouseMovement, keyboardMovement, constantBuffer);
+
+				content::draw(commandList, false);
+				content::draw(commandList, true);
+
 				graphics::endFrame();
 			}
 		}
