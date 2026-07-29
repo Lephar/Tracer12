@@ -17,19 +17,34 @@ namespace tracer::graphics {
 		CD3DX12_DESCRIPTOR_RANGE1 descriptorRange;
 		descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, textureCount, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
 
-		CD3DX12_ROOT_PARAMETER1 rootParameters[5];
-		rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
-		rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-		rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-		rootParameters[3].InitAsConstants(4, 3, 0, D3D12_SHADER_VISIBILITY_PIXEL);
-		rootParameters[4].InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_PIXEL);
-		const uint32_t rootParameterCount = sizeof(rootParameters) / sizeof(CD3DX12_ROOT_PARAMETER1);
+		CD3DX12_ROOT_PARAMETER1 meshConstantBufferView;
+		CD3DX12_ROOT_PARAMETER1 cameraConstantBufferView;
+		CD3DX12_ROOT_PARAMETER1 materialConstantBufferView;
+		CD3DX12_ROOT_PARAMETER1 lightConstantBufferView;
+		CD3DX12_ROOT_PARAMETER1 constants;
+		CD3DX12_ROOT_PARAMETER1 textures;
+
+		meshConstantBufferView.InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
+		cameraConstantBufferView.InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+		materialConstantBufferView.InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+		lightConstantBufferView.InitAsConstantBufferView(3, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
+		constants.InitAsConstants(4, 4, 0, D3D12_SHADER_VISIBILITY_PIXEL);
+		textures.InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_PIXEL);
+
+		std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
+
+		rootParameters.push_back(meshConstantBufferView);
+		rootParameters.push_back(cameraConstantBufferView);
+		rootParameters.push_back(materialConstantBufferView);
+		rootParameters.push_back(lightConstantBufferView);
+		rootParameters.push_back(constants);
+		rootParameters.push_back(textures);
 
 		CD3DX12_STATIC_SAMPLER_DESC1 staticSampler;
 		staticSampler.Init(0, D3D12_FILTER_ANISOTROPIC, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, D3D12_TEXTURE_ADDRESS_MODE_WRAP, 0, 16, D3D12_COMPARISON_FUNC_LESS_EQUAL, D3D12_STATIC_BORDER_COLOR_OPAQUE_WHITE, 0.0f, D3D12_FLOAT32_MAX, D3D12_SHADER_VISIBILITY_PIXEL, 0, D3D12_SAMPLER_FLAG_NONE);
 
 		D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC::Init_1_2(rootSignatureDesc, rootParameterCount, rootParameters, 1, &staticSampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+		CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC::Init_1_2(rootSignatureDesc, static_cast<uint32_t>(rootParameters.size()), rootParameters.data(), 1, &staticSampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
 		Microsoft::WRL::ComPtr<ID3DBlob> rootSignature;
 		debug::verify::com(D3D12SerializeVersionedRootSignature(&rootSignatureDesc, rootSignature.GetAddressOf(), nullptr));
@@ -89,7 +104,7 @@ namespace tracer::graphics {
 				.pShaderBytecode = pixelShader->GetBufferPointer(),
 				.BytecodeLength = pixelShader->GetBufferSize(),
 			},
-			.BlendState = DirectX::CommonStates::AlphaBlend,
+			.BlendState = DirectX::CommonStates::NonPremultiplied,
 			.SampleMask = UINT_MAX,
 			.RasterizerState = DirectX::CommonStates::CullClockwise,
 			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,

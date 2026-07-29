@@ -13,6 +13,8 @@ namespace tracer::content {
 		uint32_t baseColorIndex;
 		uint32_t metallicRoughnessIndex;
 		uint32_t normalIndex;
+
+		uint32_t constantIndex;
 	};
 
 	namespace {
@@ -54,10 +56,25 @@ namespace tracer::content {
 		implementation->normalIndex = 2;
 
 		auto& textures = getTextures();
+		auto& constants = getMaterialConstants();
+
+		implementation->constantIndex = static_cast<uint32_t>(constants.size());
+
+		DirectX::SimpleMath::Vector4 baseColorFactor = { 1.0f, 1.0f, 1.0f, 1.0f };
+		DirectX::SimpleMath::Vector3 metallicRoughnessNormalFactor = { 1.0f, 1.0f, 1.0f };
 
 		if (data) {
 			if (data->has_pbr_metallic_roughness) {
-				auto baseColorTexture = data->pbr_metallic_roughness.base_color_texture.texture;
+				auto& materialData = data->pbr_metallic_roughness;
+
+				baseColorFactor.x = materialData.base_color_factor[0];
+				baseColorFactor.y = materialData.base_color_factor[1];
+				baseColorFactor.z = materialData.base_color_factor[2];
+				baseColorFactor.w = materialData.base_color_factor[3];
+
+				debug::print("Base color factor: [%g, %g, %g, %g]", baseColorFactor.x, baseColorFactor.y, baseColorFactor.z, baseColorFactor.w);
+
+				auto baseColorTexture = materialData.base_color_texture.texture;
 
 				if (baseColorTexture) {
 					auto baseColorImage = getCompressedImage(baseColorTexture, images);
@@ -70,7 +87,12 @@ namespace tracer::content {
 					}
 				}
 
-				auto metallicRoughnessTexture = data->pbr_metallic_roughness.metallic_roughness_texture.texture;
+				metallicRoughnessNormalFactor.x = materialData.metallic_factor;
+				metallicRoughnessNormalFactor.y = materialData.roughness_factor;
+
+				debug::print("Metallic roughness factor: [%g, %g]", metallicRoughnessNormalFactor.x, metallicRoughnessNormalFactor.y);
+
+				auto metallicRoughnessTexture = materialData.metallic_roughness_texture.texture;
 
 				if (metallicRoughnessTexture) {
 					auto metallicRoughnessImage = getCompressedImage(metallicRoughnessTexture, images);
@@ -83,6 +105,9 @@ namespace tracer::content {
 					}
 				}
 			}
+
+			metallicRoughnessNormalFactor.z = data->normal_texture.scale;
+			debug::print("Normal scale: %g", metallicRoughnessNormalFactor.z);
 
 			auto normalTexture = data->normal_texture.texture;
 
@@ -116,6 +141,8 @@ namespace tracer::content {
 			textures.emplace_back(normalPath.wstring().c_str());
 		}
 
+		constants.emplace_back(baseColorFactor, metallicRoughnessNormalFactor);
+
 		debug::decrementDepth();
 	}
 
@@ -131,7 +158,7 @@ namespace tracer::content {
 	}
 
 	void Material::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		auto& textures = getTextures();
+		auto constantBufferView = getCurrentConstantBufferView() + getMaterialConstantsOffset() + getMaterialConstantAlignment() * implementation->constantIndex;
 
 		const uint32_t constants[] = {
 			implementation->baseColorIndex,
@@ -141,7 +168,8 @@ namespace tracer::content {
 
 		const uint32_t constantCount = static_cast<uint32_t>(sizeof(constants) / sizeof(uint32_t));
 
-		commandList->SetGraphicsRoot32BitConstants(3, constantCount, constants, 1);
+		commandList->SetGraphicsRootConstantBufferView(2, constantBufferView);
+		commandList->SetGraphicsRoot32BitConstants(4, constantCount, constants, 1);
 	}
 
 	Material::~Material() = default;

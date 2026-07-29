@@ -15,12 +15,12 @@ namespace tracer::content {
 		const auto lightConstantBufferView = getCurrentConstantBufferView() + getLightConstantsOffset();
 		const auto lightConstantCount = static_cast<uint32_t>(getLightConstants().size());
 
-		commandList->SetGraphicsRootConstantBufferView(2, lightConstantBufferView);
-		commandList->SetGraphicsRoot32BitConstant(3, lightConstantCount, 0);
+		commandList->SetGraphicsRootConstantBufferView(3, lightConstantBufferView);
+		commandList->SetGraphicsRoot32BitConstant(4, lightConstantCount, 0);
 	}
 
 	Light::Light(cgltf_light* data, cgltf_float* transform) : implementation(std::make_unique<Implementation>()) {
-		debug::print("Light: %s", data->name);
+		debug::print("Light: %s", data->name ? data->name : "");
 		debug::incrementDepth();
 
 		debug::verify::positive(data->type == cgltf_light_type_point);

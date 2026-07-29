@@ -22,6 +22,12 @@ struct Camera
     float4 properties;
 };
 
+struct Material
+{
+    float4 baseColorFactor;
+    float3 metallicRoughnessNormal;
+};
+
 #define LIGHTS_MAX 24
 
 struct Light
@@ -44,8 +50,9 @@ struct Constants
 };
 
 ConstantBuffer<Camera> camera : register(b1);
-ConstantBuffer<Lights> lights : register(b2);
-ConstantBuffer<Constants> constants : register(b3);
+ConstantBuffer<Material> material : register(b2);
+ConstantBuffer<Lights> lights : register(b3);
+ConstantBuffer<Constants> constants : register(b4);
 Texture2D textures[] : register(t0);
 SamplerState samplerState : register(s0);
 
@@ -91,12 +98,13 @@ PS_OUTPUT main(PS_INPUT input)
     }
 
     float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, input.texcoord0);
-    float3 color = pixel.rgb;
-    float alpha = pixel.a;
+    float3 color = material.baseColorFactor.rgb * pixel.rgb;
+    float alpha = material.baseColorFactor.a * pixel.a;
     
     PS_OUTPUT output;
     
-    output.color = float4((ambient + diffuse + specular) * color, alpha);
+    //output.color = float4((ambient + diffuse + specular) * color, alpha);
+    output.color = float4(color, alpha);
     
     return output;
 }

@@ -8,6 +8,11 @@ namespace tracer::content {
 		struct Implementation;
 		std::unique_ptr<Implementation> implementation;
 	public:
+		struct Constant {
+			DirectX::SimpleMath::Vector4 baseColorFactor;
+			DirectX::SimpleMath::Vector3 metallicRoughnessNormalFactor;
+		};
+
 		Material(std::filesystem::path folder, cgltf_material* data, cgltf_image* images);
 
 		Material(const Material& material) = delete;

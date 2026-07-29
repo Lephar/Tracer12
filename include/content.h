@@ -24,6 +24,7 @@ namespace tracer::content {
 	std::vector<Light>& getLights();
 	std::vector<Primitive>& getPrimitives();
 
+	std::vector<Material::Constant>& getMaterialConstants();
 	std::vector<Mesh::Constant>& getMeshConstants();
 	std::vector<Camera::Constant>& getCameraConstants();
 	std::vector<Light::Constant>& getLightConstants();
@@ -31,9 +32,11 @@ namespace tracer::content {
 	std::vector<Primitive::Index>& getIndices();
 	std::vector<Primitive::Vertex>& getVertices();
 
+	uint32_t getMaterialConstantAlignment();
 	uint32_t getMeshConstantAlignment();
 	uint32_t getCameraConstantAlignment();
 	uint32_t getLightConstantAlignment();
+	uint32_t getMaterialConstantsOffset();
 	uint32_t getMeshConstantsOffset();
 	uint32_t getCameraConstantsOffset();
 	uint32_t getLightConstantsOffset();

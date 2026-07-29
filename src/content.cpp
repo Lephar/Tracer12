@@ -17,6 +17,7 @@ namespace tracer::content {
 		std::vector<Light> lights = {};
 		std::vector<Primitive> primitives = {};
 
+		std::vector<Material::Constant> materialConstants = {};
 		std::vector<Mesh::Constant> meshConstants = {};
 		std::vector<Camera::Constant> cameraConstants = {};
 		std::vector<Light::Constant> lightConstants = {};
@@ -28,14 +29,17 @@ namespace tracer::content {
 
 		uint32_t defaultCameraIndex = UINT32_MAX;
 
+		uint32_t materialConstantAlignment = UINT32_MAX;
 		uint32_t meshConstantAlignment = UINT32_MAX;
 		uint32_t cameraConstantAlignment = UINT32_MAX;
 		uint32_t lightConstantAlignment = UINT32_MAX;
 
+		uint32_t materialConstantsSize = UINT32_MAX;
 		uint32_t meshConstantsSize = UINT32_MAX;
 		uint32_t cameraConstantsSize = UINT32_MAX;
 		uint32_t lightConstantsSize = UINT32_MAX;
 
+		uint32_t materialConstantsOffset = UINT32_MAX;
 		uint32_t meshConstantsOffset = UINT32_MAX;
 		uint32_t cameraConstantsOffset = UINT32_MAX;
 		uint32_t lightConstantsOffset = UINT32_MAX;
@@ -81,7 +85,11 @@ namespace tracer::content {
 		cameraConstantAlignment = static_cast<uint32_t>(align(sizeof(Camera::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 		cameraConstantsSize = static_cast<uint32_t>(cameraConstants.size() * cameraConstantAlignment);
 
-		lightConstantsOffset = cameraConstantsOffset + cameraConstantsSize;
+		materialConstantsOffset = cameraConstantsOffset + cameraConstantsSize;
+		materialConstantAlignment = static_cast<uint32_t>(align(sizeof(Material::Constant), D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
+		materialConstantsSize = static_cast<uint32_t>(materialConstants.size() * materialConstantAlignment);
+
+		lightConstantsOffset = materialConstantsOffset + materialConstantsSize;
 		lightConstantAlignment = static_cast<uint32_t>(sizeof(Light::Constant));
 		lightConstantsSize = static_cast<uint32_t>(align(lightConstants.size() * lightConstantAlignment, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 
@@ -122,6 +130,10 @@ namespace tracer::content {
 		return primitives;
 	}
 
+	std::vector<Material::Constant>& getMaterialConstants() {
+		return materialConstants;
+	}
+
 	std::vector<Mesh::Constant>& getMeshConstants() {
 		return meshConstants;
 	}
@@ -142,6 +154,10 @@ namespace tracer::content {
 		return vertices;
 	}
 
+	uint32_t getMaterialConstantAlignment() {
+		return materialConstantAlignment;
+	}
+
 	uint32_t getMeshConstantAlignment() {
 		return meshConstantAlignment;
 	}
@@ -152,6 +168,10 @@ namespace tracer::content {
 
 	uint32_t getLightConstantAlignment() {
 		return lightConstantAlignment;
+	}
+
+	uint32_t getMaterialConstantsOffset() {
+		return materialConstantsOffset;
 	}
 
 	uint32_t getMeshConstantsOffset() {
@@ -339,6 +359,10 @@ namespace tracer::content {
 			memcpy(constantBufferMemory + cameraConstantsOffset + cameraIndex * cameraConstantAlignment, &cameraConstants.at(cameraIndex), sizeof(Camera::Constant));
 		}
 
+		for (uint32_t materialIndex = 0; materialIndex < materialConstants.size(); materialIndex++) {
+			memcpy(constantBufferMemory + materialConstantsOffset + materialIndex * materialConstantAlignment, &materialConstants.at(materialIndex), sizeof(Material::Constant));
+		}
+
 		for (uint32_t lightIndex = 0; lightIndex < lightConstants.size(); lightIndex++) {
 			memcpy(constantBufferMemory + lightConstantsOffset + lightIndex * lightConstantAlignment, &lightConstants.at(lightIndex), sizeof(Light::Constant));
 		}
@@ -352,7 +376,7 @@ namespace tracer::content {
 		commandList->IASetIndexBuffer(&indexBufferView);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 		commandList->SetDescriptorHeaps(1, &descriptorHeap);
-		commandList->SetGraphicsRootDescriptorTable(4, descriptorTable);
+		commandList->SetGraphicsRootDescriptorTable(5, descriptorTable);
 
 		auto& camera = cameras.at(defaultCameraIndex);
 		camera.bind(commandList);

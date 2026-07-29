@@ -21,7 +21,8 @@ namespace tracer::content {
 		debug::verify::com(DirectX::LoadFromDDSFileEx(path, DirectX::DDS_FLAGS_NONE, nullptr, nullptr, implementation->image));
 
 		auto& mainImage = *implementation->image.GetImages();
-		debug::print("Image loaded: %ux%u", mainImage.width, mainImage.height);
+		debug::print("Size: %ux%u", mainImage.width, mainImage.height);
+		debug::print("Mips: %u", implementation->image.GetImageCount());
 
 		debug::decrementDepth();
 	}
