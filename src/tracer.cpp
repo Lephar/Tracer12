@@ -10,7 +10,7 @@ namespace tracer {
 	namespace {
 		void initialize() {
 			system::initialize("Tracer");
-			
+
 			const auto dataFolder = system::getDataFolder();
 			const auto window = system::getWindow();
 			const auto width = system::getWidth();
@@ -47,14 +47,22 @@ namespace tracer {
 				const auto mouseMovement = system::getMouseMovement();
 				const auto keyboardMovement = system::getKeyboardMovement();
 
+				content::update(mouseMovement, keyboardMovement);
 
 				graphics::beginFrame();
 
 				const auto constantBuffer = graphics::getCurrentConstantBuffer();
-				content::update(mouseMovement, keyboardMovement, constantBuffer);
 
-				content::draw(commandList, false);
-				content::draw(commandList, true);
+				content::bind(commandList, constantBuffer);
+
+				const std::vector<bool> states{ false, true };
+
+				for (auto blending : states) {
+					for (auto culling : states) {
+						graphics::bind(commandList, blending, culling);
+						content::draw(commandList, blending, culling);
+					}
+				}
 
 				graphics::endFrame();
 			}

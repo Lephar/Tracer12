@@ -93,6 +93,7 @@
     <ClCompile Include="src\node.cpp" />
     <ClCompile Include="src\primitive.cpp" />
     <ClCompile Include="src\queue.cpp" />
+    <ClCompile Include="src\rootSignature.cpp" />
     <ClCompile Include="src\texture.cpp" />
     <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -120,6 +121,7 @@
     <ClInclude Include="include\node.h" />
     <ClInclude Include="include\primitive.h" />
     <ClInclude Include="include\queue.h" />
+    <ClInclude Include="include\rootSignature.h" />
     <ClInclude Include="include\texture.h" />
     <ClInclude Include="include\tracer.h" />
     <ClInclude Include="include\debug.h" />

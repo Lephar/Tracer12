@@ -47,6 +47,8 @@ namespace tracer::content {
 	void clearStaging();
 
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView();
-	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
-	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent);
+
+	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement);
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
+	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling);
 }

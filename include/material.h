@@ -23,7 +23,9 @@ namespace tracer::content {
 
 		bool operator==(const std::string& name) const;
 
-		bool isTransparent();
+		bool blending();
+		bool culling();
+
 		void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 
 		~Material();

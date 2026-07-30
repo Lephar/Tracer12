@@ -4,5 +4,5 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::queue {
+namespace tracer::graphics::memory {
 }

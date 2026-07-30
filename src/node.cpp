@@ -59,15 +59,15 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Node::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
+	void Node::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
 		if (implementation->meshIndex.has_value()) {
 			auto& meshes = getMeshes();
 			auto& mesh = meshes.at(implementation->meshIndex.value());
-			mesh.draw(commandList, transparent);
+			mesh.draw(commandList, blending, culling);
 		}
 
 		for (auto& child : implementation->children) {
-			child.draw(commandList, transparent);
+			child.draw(commandList, blending, culling);
 		}
 	}
 	

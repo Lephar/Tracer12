@@ -51,7 +51,7 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
+	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
 		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
 		commandList->SetGraphicsRootConstantBufferView(0, constantBufferView);
 
@@ -59,7 +59,7 @@ namespace tracer::content {
 
 		for (uint32_t primitiveIndex = 0; primitiveIndex < implementation->primitiveCount; primitiveIndex++) {
 			auto& primitive = primitives.at(implementation->primitiveBegin + primitiveIndex);
-			primitive.draw(commandList, transparent);
+			primitive.draw(commandList, blending, culling);
 		}
 	}
 	

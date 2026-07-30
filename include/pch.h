@@ -9,6 +9,7 @@
 #include <cstdarg>
 
 // STL
+#include <map>
 #include <vector>
 #include <memory>
 #include <chrono>

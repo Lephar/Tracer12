@@ -10,7 +10,8 @@ namespace tracer::content {
 	struct Material::Implementation {
 		std::string name;
 
-		bool isTransparent;
+		bool blending;
+		bool culling;
 
 		uint32_t baseColorIndex;
 		uint32_t metallicRoughnessIndex;
@@ -53,7 +54,8 @@ namespace tracer::content {
 		debug::print("Material: %s", implementation->name.c_str());
 		debug::incrementDepth();
 
-		implementation->isTransparent = false;
+		implementation->blending = false;
+		implementation->culling = true;
 
 		implementation->baseColorIndex = 0;
 		implementation->metallicRoughnessIndex = 1;
@@ -69,7 +71,11 @@ namespace tracer::content {
 
 		if (data) {
 			if (data->alpha_mode == cgltf_alpha_mode_blend) {
-				implementation->isTransparent = true;
+				implementation->blending = true;
+			}
+
+			if (data->double_sided) {
+				implementation->culling = false;
 			}
 
 			if (data->has_pbr_metallic_roughness) {
@@ -165,8 +171,12 @@ namespace tracer::content {
 		return implementation->name == name;
 	}
 
-	bool Material::isTransparent() {
-		return implementation->isTransparent;
+	bool Material::blending() {
+		return implementation->blending;
+	}
+
+	bool Material::culling() {
+		return implementation->culling;
 	}
 	
 	void Material::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {

@@ -7,6 +7,7 @@
 #include "device.h"
 #include "queue.h"
 #include "swapchain.h"
+#include "rootSignature.h"
 #include "pipeline.h"
 
 extern "C" {
@@ -16,12 +17,12 @@ extern "C" {
 
 namespace tracer::graphics {
 	namespace {
-		std::unique_ptr<Pipeline> pipeline;
+		std::map<std::pair<bool, bool>, Pipeline> pipelines;
 	}
 
 	void initialize(std::filesystem::path dataFolder, HWND window, uint32_t width, uint32_t height) {
 		compiler::initialize(dataFolder);
-		
+
 		infrastructure::initialize();
 
 		auto factory = infrastructure::getFactory();
@@ -62,10 +63,22 @@ namespace tracer::graphics {
 		const auto depthStencilFormat = swapChain::getDepthStencilFormat();
 		const auto renderTargetFormat = swapChain::getRenderTargetFormat();
 
+		rootSignature::create(device, textureCount);
+
+		auto rootSignature = rootSignature::getRootSignature();
+
 		auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
 		auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
 
-		pipeline = std::make_unique<Pipeline>(device, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat, textureCount);
+		const std::vector<bool> states{ false, true };
+
+		for (auto blending : states) {
+			for (auto culling : states) {
+				std::pair<bool, bool> key{ blending, culling };
+				Pipeline value{ device, rootSignature, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat, blending, culling };
+				pipelines.emplace(std::make_pair(key, std::move(value)));
+			}
+		}
 	}
 
 	void beginCommand() {
@@ -78,17 +91,21 @@ namespace tracer::graphics {
 		queue::signal();
 		queue::wait();
 	}
-	
+
 	void beginFrame() {
 		auto commandList = queue::getCommandList();
 		auto fenceEvent = queue::getFenceEvent();
 
 		swapChain::begin(commandList, fenceEvent);
-		pipeline->bind(commandList);
+		rootSignature::bind(commandList);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer() {
 		return swapChain::getCurrentConstantBuffer();
+	}
+
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
+		pipelines.at(std::make_pair(blending, culling)).bind(commandList);
 	}
 
 	void endFrame() {
@@ -104,7 +121,7 @@ namespace tracer::graphics {
 		auto commandQueue = queue::getCommandQueue();
 		auto commandList = queue::getCommandList();
 		auto fenceEvent = queue::getFenceEvent();
-		
+
 		swapChain::destroy(commandQueue, commandList, fenceEvent);
 	}
 }

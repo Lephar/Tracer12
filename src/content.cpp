@@ -324,7 +324,7 @@ namespace tracer::content {
 		return currentConstantBufferView;
 	}
 	
-	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
+	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement) {
 		const auto turnSpeed = 1.0f;
 		const auto moveSpeed = 4.0f;
 
@@ -344,7 +344,9 @@ namespace tracer::content {
 		auto view = DirectX::SimpleMath::Matrix::CreateLookAt(position, position + forward, up);
 
 		cameras.at(defaultCameraIndex).update(transform, view);
+	}
 
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
 		CD3DX12_RANGE readRange(0, 0);
 		uint8_t* constantBufferMemory;
 		debug::verify::com(constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferMemory)));
@@ -367,12 +369,11 @@ namespace tracer::content {
 
 		constantBuffer->Unmap(0, nullptr);
 		currentConstantBufferView = constantBuffer->GetGPUVirtualAddress();
-	}
 
-	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool transparent) {
 		const auto descriptorHeap = shaderResourceDescriptorHeap->Heap();
 		const auto descriptorTable = shaderResourceDescriptorHeap->GetFirstGpuHandle();
-		
+
+		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetIndexBuffer(&indexBufferView);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 		commandList->SetDescriptorHeaps(1, &descriptorHeap);
@@ -381,9 +382,11 @@ namespace tracer::content {
 		auto& camera = cameras.at(defaultCameraIndex);
 		camera.bind(commandList);
 		Light::bindAll(commandList);
+	}
 
+	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
 		for (auto& asset : assets) {
-			asset.draw(commandList, transparent);
+			asset.draw(commandList, blending, culling);
 		}
 	}
 }

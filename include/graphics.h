@@ -16,6 +16,7 @@ namespace tracer::graphics {
 
 	void beginFrame();
 	Microsoft::WRL::ComPtr<ID3D12Resource2> getCurrentConstantBuffer();
+	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling);
 	void endFrame();
 
 	void destroy();
