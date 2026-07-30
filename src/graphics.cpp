@@ -76,6 +76,7 @@ namespace tracer::graphics {
 			for (auto culling : states) {
 				std::pair<bool, bool> key{ blending, culling };
 				Pipeline value{ device, rootSignature, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat, blending, culling };
+
 				pipelines.emplace(std::make_pair(key, std::move(value)));
 			}
 		}
