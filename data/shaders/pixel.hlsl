@@ -62,12 +62,21 @@ PS_OUTPUT main(PS_INPUT input)
     float Kc = 1.0f;
     float Kl = 0.35;
     float Kq = 0.44;
-
-    float specularFalloff = 32.0f;
+    
+    float specularCoefficient = 4.0f;
+    float specularFalloff = 16.0f;
     
     float3 ambient = float3(0.2f, 0.2f, 0.2f);
     float3 diffuse = float3(0.0f, 0.0f, 0.0f);
     float3 specular = float3(0.0f, 0.0f, 0.0f);
+    
+    float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, input.texcoord0);
+    float3 color = float3(material.baseColorFactor.xyz * pixel.rgb);
+    float alpha = material.baseColorFactor.w * pixel.a;
+    
+    float2 metallicRoughness = textures[constants.metallicRoughnessIndex].Sample(samplerState, input.texcoord0).bg;
+    float metalness = material.metallicRoughnessNormal.x * metallicRoughness.x;
+    float roughness = material.metallicRoughnessNormal.y * metallicRoughness.y;
     
     float3 normalScale = float3(material.metallicRoughnessNormal.z, material.metallicRoughnessNormal.z, 1.0f);
     float3 textureNormal = normalize((textures[constants.normalIndex].Sample(samplerState, input.texcoord0).xyz * 2.0f - 1.0f) * normalScale);
@@ -94,16 +103,12 @@ PS_OUTPUT main(PS_INPUT input)
         float attenuation = Kc + Kl * lightDistance + Kq * lightDistance * lightDistance;
         float impact = intensity / attenuation;
         
-        float lightSpecular = pow(max(dot(normal, halfwayDirection), 0.0f), specularFalloff);
+        float lightSpecular = (metalness + (1.0f - roughness)) * specularCoefficient * pow(max(dot(normal, halfwayDirection), 0.0f), specularFalloff);
         float lightDiffuse = max(dot(normal, lightDirection), 0.0f);
 
         diffuse = diffuse + (impact * lightDiffuse * lightColor);
         specular = specular + (impact * lightSpecular * lightColor);
     }
-
-    float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, input.texcoord0);
-    float3 color = float3(material.baseColorFactor.r * pixel.r, material.baseColorFactor.g * pixel.g, material.baseColorFactor.b * pixel.b);
-    float alpha = material.baseColorFactor.a * pixel.a;
     
     PS_OUTPUT output;
     
