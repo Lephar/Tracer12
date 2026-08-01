@@ -11,6 +11,7 @@ namespace tracer::graphics::swapChain {
 		uint32_t height = 0;
 
 		uint32_t imageCount = 0;
+		uint32_t sampleCount = 0;
 
 		DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_UNKNOWN;
 		DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_UNKNOWN;
@@ -40,6 +41,7 @@ namespace tracer::graphics::swapChain {
 		uint32_t swapChainWidth,
 		uint32_t swapChainHeight,
 		uint32_t swapChainImageCount,
+		uint32_t swapChainSampleCount,
 		DXGI_FORMAT swapChainDepthStencilFormat,
 		DXGI_FORMAT swapChainRenderTargetFormat
 	) {
@@ -49,6 +51,7 @@ namespace tracer::graphics::swapChain {
 		width = swapChainWidth;
 		height = swapChainHeight;
 		imageCount = swapChainImageCount;
+		sampleCount = swapChainSampleCount;
 		depthStencilFormat = swapChainDepthStencilFormat;
 		renderTargetFormat = swapChainRenderTargetFormat;
 		debug::print("Swap chain properties set");
@@ -84,7 +87,7 @@ namespace tracer::graphics::swapChain {
 			.SampleDesc = {
 				.Count = 1,
 			},
-			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferUsage = 0,
 			.BufferCount = imageCount,
 			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 		};
@@ -94,7 +97,7 @@ namespace tracer::graphics::swapChain {
 		};
 
 		debug::verify::com(factory->CreateSwapChainForHwnd(queue.Get(), window, &swapChainDesc, &fullscreenDesc, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf())));
-		debug::print("Swap chain created with %u images", imageCount);
+		debug::print("Swap chain created with %u sampled %u images", sampleCount, imageCount);
 		
 		frameBuffers.reserve(imageCount);
 		
@@ -121,6 +124,10 @@ namespace tracer::graphics::swapChain {
 		return imageCount;
 	}
 
+	uint32_t getSampleCount() {
+		return sampleCount;
+	}
+
 	DXGI_FORMAT getDepthStencilFormat() {
 		return depthStencilFormat;
 	}
@@ -135,7 +142,9 @@ namespace tracer::graphics::swapChain {
 
 		const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		const auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+
+		const auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+		const auto renderTargetResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(renderTargetFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
 			.Format = depthStencilFormat,
@@ -145,13 +154,28 @@ namespace tracer::graphics::swapChain {
 			},
 		};
 
+		D3D12_CLEAR_VALUE renderTargetClearValue = {
+			.Format = renderTargetFormat,
+			.Color = {
+				0.0f,
+				0.0f,
+				0.0f,
+				1.0f
+			},
+		};
+
 		debug::verify::com(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
 		debug::print("Depth stencil buffer created on default heap");
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {
 			.Format = depthStencilFormat,
-			.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D,
+			.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMS,
 			.Flags = D3D12_DSV_FLAG_NONE,
+		};
+
+		D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {
+			.Format = renderTargetFormat,
+			.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMS,
 		};
 
 		depthStencilView = depthStencilDescriptorHeap->GetFirstCpuHandle();
@@ -165,19 +189,23 @@ namespace tracer::graphics::swapChain {
 			auto& frameBuffer = frameBuffers.at(imageIndex);
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
-			debug::verify::com(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
-			debug::print("Swap chain buffer acquired");
+			debug::verify::com(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &renderTargetResourceDesc, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, &renderTargetClearValue, nullptr, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
+			debug::print("Render target buffer created on default heap");
 
-			auto renderTargetView = renderTargetDescriptorHeap->GetCpuHandle(imageIndex);
-			device->CreateRenderTargetView(renderTargetBuffer.Get(), nullptr, renderTargetView);
-			debug::print("Render target view created");
+			Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer;
+			debug::verify::com(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(resolveBuffer.GetAddressOf())));
+			debug::print("Swap chain buffer acquired");
 
 			const auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
 			Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
 			debug::verify::com(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
 			debug::print("Constant buffer created on upload heap");
 
-			frameBuffer.setResources(renderTargetBuffer, renderTargetView, constantBuffer);
+			auto renderTargetView = renderTargetDescriptorHeap->GetCpuHandle(imageIndex);
+			device->CreateRenderTargetView(renderTargetBuffer.Get(), &renderTargetViewDesc, renderTargetView);
+			debug::print("Render target view created");
+
+			frameBuffer.setResources(renderTargetBuffer, resolveBuffer, constantBuffer, renderTargetView);
 			debug::decrementDepth();
 		}
 
@@ -200,7 +228,7 @@ namespace tracer::graphics::swapChain {
 	}
 
 	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		frameBuffers.at(imageIndex).end(commandList);
+		frameBuffers.at(imageIndex).end(commandList, renderTargetFormat);
 	}
 
 	void present(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue) {

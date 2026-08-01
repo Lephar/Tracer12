@@ -14,6 +14,7 @@ namespace tracer::graphics {
 			Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
 			Microsoft::WRL::ComPtr<IDxcBlob> vertexShader,
 			Microsoft::WRL::ComPtr<IDxcBlob> pixelShader,
+			uint32_t sampleCount,
 			DXGI_FORMAT depthStencilFormat,
 			DXGI_FORMAT renderTargetFormat,
 			bool blending,

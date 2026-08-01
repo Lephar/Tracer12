@@ -11,11 +11,13 @@ namespace tracer::graphics::swapChain {
 		uint32_t swapChainWidth,
 		uint32_t swapChainHeight,
 		uint32_t swapChainImageCount,
+		uint32_t swapChainSampleCount,
 		DXGI_FORMAT swapChainDepthStencilFormat,
 		DXGI_FORMAT swapChainRenderTargetFormat
 	);
 
 	uint32_t getImageCount();
+	uint32_t getSampleCount();
 
 	DXGI_FORMAT getDepthStencilFormat();
 	DXGI_FORMAT getRenderTargetFormat();

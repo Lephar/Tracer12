@@ -18,12 +18,12 @@ namespace tracer::graphics {
 		FrameBuffer(FrameBuffer&& image) noexcept;
 		FrameBuffer& operator=(FrameBuffer&& image) noexcept;
 
-		void setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer);
+		void setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView);
 		
 		void wait(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
 		void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
 		Microsoft::WRL::ComPtr<ID3D12Resource2> getConstantBuffer();
-		void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, DXGI_FORMAT renderTargetFormat);
 		void signal(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue);
 		
 		~FrameBuffer();

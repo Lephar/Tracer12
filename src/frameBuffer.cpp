@@ -10,12 +10,13 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12Fence1> fence;
 		uint64_t fenceValue;
 
-		Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer;
+		Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
+		Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer;
+		Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
 		D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView;
 
-		Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
-
 		D3D12_RESOURCE_BARRIER renderBarrier;
+		std::vector<D3D12_RESOURCE_BARRIER> resolveBarriers;
 		D3D12_RESOURCE_BARRIER presentBarrier;
 	};
 
@@ -33,16 +34,18 @@ namespace tracer::graphics {
 		return *this;
 	}
 
-	void FrameBuffer::setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> swapChainBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
-		implementation->swapChainBuffer = swapChainBuffer;
-		implementation->renderTargetView = renderTargetView;
+	void FrameBuffer::setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView) {
+		implementation->renderTargetBuffer = renderTargetBuffer;
+		implementation->resolveBuffer = resolveBuffer;
 		implementation->constantBuffer = constantBuffer;
+		implementation->renderTargetView = renderTargetView;
+		debug::print("Resources set");
 
-		implementation->renderBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->swapChainBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		debug::print("Render barrier set");
-
-		implementation->presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->swapChainBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-		debug::print("Present barrier set");
+		implementation->renderBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->renderTargetBuffer.Get(), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET);
+		implementation->resolveBarriers.emplace_back(CD3DX12_RESOURCE_BARRIER::Transition(implementation->renderTargetBuffer.Get(), D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_RESOLVE_SOURCE));
+		implementation->resolveBarriers.emplace_back(CD3DX12_RESOURCE_BARRIER::Transition(implementation->resolveBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RESOLVE_DEST));
+		implementation->presentBarrier = CD3DX12_RESOURCE_BARRIER::Transition(implementation->resolveBuffer.Get(), D3D12_RESOURCE_STATE_RESOLVE_DEST, D3D12_RESOURCE_STATE_PRESENT);
+		debug::print("Barriers set");
 	}
 	
 	void FrameBuffer::wait(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
@@ -69,8 +72,11 @@ namespace tracer::graphics {
 		return implementation->constantBuffer;
 	}
 	
-	void FrameBuffer::end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void FrameBuffer::end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, DXGI_FORMAT renderTargetFormat) {
+		commandList->ResourceBarrier(static_cast<uint32_t>(implementation->resolveBarriers.size()), implementation->resolveBarriers.data());
+		commandList->ResolveSubresource(implementation->resolveBuffer.Get(), 0, implementation->renderTargetBuffer.Get(), 0, renderTargetFormat);
 		commandList->ResourceBarrier(1, &implementation->presentBarrier);
+
 		debug::verify::com(commandList->Close());
 	}
 

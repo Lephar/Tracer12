@@ -14,6 +14,7 @@ namespace tracer::graphics {
 		Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
 		Microsoft::WRL::ComPtr<IDxcBlob> vertexShader,
 		Microsoft::WRL::ComPtr<IDxcBlob> pixelShader,
+		uint32_t sampleCount,
 		DXGI_FORMAT depthStencilFormat,
 		DXGI_FORMAT renderTargetFormat,
 		bool blending,
@@ -22,8 +23,8 @@ namespace tracer::graphics {
 		debug::print("Creating pipeline:");
 		debug::incrementDepth();
 
-		debug::print("Blending: %s", blending ? "enabled" : "disable");
-		debug::print("Culling: %s", culling ? "enabled" : "disable");
+		debug::print("Blending %s", blending ? "enabled" : "disable");
+		debug::print("Culling %s", culling ? "enabled" : "disable");
 
 		std::vector<const char*> inputElementSemanticNames{
 			"POSITION",
@@ -79,12 +80,13 @@ namespace tracer::graphics {
 			},
 			.DSVFormat = depthStencilFormat,
 			.SampleDesc = {
-				.Count = 1,
+				.Count = sampleCount,
+				.Quality = DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN,
 			},
 		};
 
 		debug::verify::com(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineState.GetAddressOf())));
-		debug::print("Graphics pipeline state object created");
+		debug::print("Graphics pipeline state created");
 
 		debug::decrementDepth();
 	}

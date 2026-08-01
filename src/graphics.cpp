@@ -37,10 +37,11 @@ namespace tracer::graphics {
 		auto queue = queue::getCommandQueue();
 
 		const uint32_t imageCount = 3;
+		const uint32_t sampleCount = 4;
 		const DXGI_FORMAT depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
 		const DXGI_FORMAT renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		swapChain::initialize(window, factory, device, queue, width, height, imageCount, depthStencilFormat, renderTargetFormat);
+		swapChain::initialize(window, factory, device, queue, width, height, imageCount, sampleCount, depthStencilFormat, renderTargetFormat);
 	}
 
 	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice() {
@@ -60,6 +61,7 @@ namespace tracer::graphics {
 
 		swapChain::createResources(device, constantBufferSize);
 
+		const auto sampleCount = swapChain::getSampleCount();
 		const auto depthStencilFormat = swapChain::getDepthStencilFormat();
 		const auto renderTargetFormat = swapChain::getRenderTargetFormat();
 
@@ -75,7 +77,7 @@ namespace tracer::graphics {
 		for (auto blending : states) {
 			for (auto culling : states) {
 				std::pair<bool, bool> key{ blending, culling };
-				Pipeline value{ device, rootSignature, vertexShader, pixelShader, depthStencilFormat, renderTargetFormat, blending, culling };
+				Pipeline value{ device, rootSignature, vertexShader, pixelShader, sampleCount, depthStencilFormat, renderTargetFormat, blending, culling };
 
 				pipelines.emplace(std::make_pair(key, std::move(value)));
 			}
