@@ -20,7 +20,7 @@ namespace tracer::content {
 		auto material = std::find(materials.begin(), materials.end(), std::string{ data->material->name });
 
 		implementation->materialIndex = static_cast<uint32_t>(material - materials.begin());
-		debug::print("Material: %u-%s", implementation->materialIndex, data->material->name);
+		debug::print("Material: %s", data->material->name);
 
 		auto& indices = getIndices();
 		auto& vertices = getVertices();

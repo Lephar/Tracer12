@@ -49,7 +49,7 @@ namespace tracer::content {
 			.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
 			.Texture2D = {
 				.MostDetailedMip = 0,
-				.MipLevels = 1,
+				.MipLevels = static_cast<uint32_t>(metadata.mipLevels),
 				.PlaneSlice = 0,
 				.ResourceMinLODClamp = 0.0f,
 			},
