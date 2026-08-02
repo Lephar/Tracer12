@@ -1,17 +1,15 @@
 struct PS_INPUT
 {
-    float4 output : SV_POSITION;
-    float3 position : POSITION;
+    float4 position : POSITION;
     float4 tangent : TANGENT;
-    float3 normal : NORMAL;
-    float2 texcoord0 : TEXCOORD0;
-    float2 texcoord1 : TEXCOORD1;
-    float3x3 tangentBitangentNormal : TANGENT_BITANGENT_NORMAL;
+    float4 normal : NORMAL;
+    float4 texcoord : TEXCOORD;
+    bool isFrontFace : SV_IsFrontFace;
 };
 
 struct PS_OUTPUT
 {
-    float4 color : SV_TARGET;
+    float4 color : SV_Target;
 };
 
 struct Camera
@@ -70,19 +68,34 @@ PS_OUTPUT main(PS_INPUT input)
     float3 diffuse = float3(0.0f, 0.0f, 0.0f);
     float3 specular = float3(0.0f, 0.0f, 0.0f);
     
-    float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, input.texcoord0);
+    float3 position = input.position.xyz;
+    float3 tangent = normalize(input.tangent.xyz);
+    float3 normal = normalize(input.normal.xyz);
+    float2 texcoord0 = input.texcoord.xy;
+    float2 texcoord1 = input.texcoord.zw;
+    
+    float tangentSign = normalize(input.tangent.w);
+    float3 bitangent = tangentSign * normalize(cross(normal, tangent));
+    
+    float3x3 tangentBitangentNormal = float3x3(
+        tangent.x, bitangent.x, normal.x,
+        tangent.y, bitangent.y, normal.y,
+        tangent.z, bitangent.z, normal.z
+    );
+    
+    float4 pixel = textures[constants.baseColorIndex].Sample(samplerState, texcoord0);
     float3 color = float3(material.baseColorFactor.xyz * pixel.rgb);
     float alpha = material.baseColorFactor.w * pixel.a;
     
-    float2 metallicRoughness = textures[constants.metallicRoughnessIndex].Sample(samplerState, input.texcoord0).bg;
+    float2 metallicRoughness = textures[constants.metallicRoughnessIndex].Sample(samplerState, texcoord0).bg;
     float metalness = material.metallicRoughnessNormal.x * metallicRoughness.x;
     float roughness = material.metallicRoughnessNormal.y * metallicRoughness.y;
     
     float3 normalScale = float3(material.metallicRoughnessNormal.z, material.metallicRoughnessNormal.z, 1.0f);
-    float3 textureNormal = normalize((textures[constants.normalIndex].Sample(samplerState, input.texcoord0).xyz * 2.0f - 1.0f) * normalScale);
-    float3 normal = normalize(mul(input.tangentBitangentNormal, textureNormal));
+    float3 textureNormal = normalize((textures[constants.normalIndex].Sample(samplerState, texcoord0).xyz * 2.0f - 1.0f) * normalScale);
+    float3 finalNormal = (1.0f - 2.0f * float(input.isFrontFace)) * normalize(mul(tangentBitangentNormal, textureNormal));
     
-    float3 viewDirection = normalize(camera.position.xyz - input.position);
+    float3 viewDirection = normalize(camera.position.xyz - position);
     
     uint lightCount = min(constants.lightCount, LIGHTS_MAX);
     
@@ -91,7 +104,7 @@ PS_OUTPUT main(PS_INPUT input)
         Light light = lights.lights[lightIndex];
         
         float3 lightPosition = light.position.xyz;
-        float3 lightVector = lightPosition - input.position;
+        float3 lightVector = lightPosition - position;
         float3 lightDirection = normalize(lightVector);
         float lightDistance = length(lightVector);
 
@@ -103,8 +116,8 @@ PS_OUTPUT main(PS_INPUT input)
         float attenuation = Kc + Kl * lightDistance + Kq * lightDistance * lightDistance;
         float impact = intensity / attenuation;
         
-        float lightSpecular = (metalness + (1.0f - roughness)) * specularCoefficient * pow(max(dot(normal, halfwayDirection), 0.0f), specularFalloff);
-        float lightDiffuse = max(dot(normal, lightDirection), 0.0f);
+        float lightSpecular = (metalness + (1.0f - roughness)) * specularCoefficient * pow(max(dot(finalNormal, halfwayDirection), 0.0f), specularFalloff);
+        float lightDiffuse = max(dot(finalNormal, lightDirection), 0.0f);
 
         diffuse = diffuse + (impact * lightDiffuse * lightColor);
         specular = specular + (impact * lightSpecular * lightColor);
@@ -113,7 +126,6 @@ PS_OUTPUT main(PS_INPUT input)
     PS_OUTPUT output;
     
     output.color = float4((ambient + diffuse + specular) * color, alpha);
-    //output.color = float4(0.5f * normal + 0.5f, 1.0f);
     
     return output;
 }

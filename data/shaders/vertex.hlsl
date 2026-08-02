@@ -8,13 +8,11 @@ struct VS_INPUT
 
 struct VS_OUTPUT
 {
-    float4 output : SV_POSITION;
-    float3 position : POSITION;
+    float4 position : POSITION;
     float4 tangent : TANGENT;
-    float3 normal : NORMAL;
-    float2 texcoord0 : TEXCOORD0;
-    float2 texcoord1 : TEXCOORD1;
-    float3x3 tangentBitangentNormal : TANGENT_BITANGENT_NORMAL;
+    float4 normal : NORMAL;
+    float4 texcoord : TEXCOORD;
+    float4 output : SV_Position;
 };
 
 struct Mesh
@@ -39,25 +37,12 @@ VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT output;
     
-    float4 position = mul(mesh.model, input.position);
-    float3 tangent = normalize(mul(mesh.normal, input.tangent).xyz);
-    float3 normal = normalize(mul(mesh.normal, input.normal).xyz);
-    float tangentSign = input.tangent.w;
-    float3 bitangent = normalize(cross(normal, tangent)) * tangentSign;
+    output.position = mul(mesh.model, input.position);
+    output.tangent = float4(mul(mesh.normal, input.tangent).xyz, input.tangent.w);
+    output.normal = mul(mesh.normal, input.normal);
+    output.texcoord = input.texcoord;
     
-    output.position = position.xyz;
-    output.tangent = float4(tangent, tangentSign);
-    output.normal = normal;
-    output.texcoord0 = input.texcoord.xy;
-    output.texcoord1 = input.texcoord.zw;
-    
-    output.tangentBitangentNormal = float3x3(
-        tangent.x, bitangent.x, normal.x,
-        tangent.y, bitangent.y, normal.y,
-        tangent.z, bitangent.z, normal.z
-    );
-    
-    output.output = mul(camera.projectionView, position);
+    output.output = mul(camera.projectionView, output.position);
     
     return output;
 }
