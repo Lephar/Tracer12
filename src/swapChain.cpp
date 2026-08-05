@@ -145,6 +145,7 @@ namespace tracer::graphics::swapChain {
 
 		const auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
 		const auto renderTargetResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(renderTargetFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		const auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
 			.Format = depthStencilFormat,
@@ -196,7 +197,6 @@ namespace tracer::graphics::swapChain {
 			debug::verify::com(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(resolveBuffer.GetAddressOf())));
 			debug::print("Swap chain buffer acquired");
 
-			const auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
 			Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
 			debug::verify::com(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
 			debug::print("Constant buffer created on upload heap");
