@@ -16,13 +16,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Tracer12.slnx" />
-    <None Include="packages.config" />
     <None Include=".gitattributes" />
     <None Include=".gitignore" />
     <None Include=".gitmodules" />
     <None Include="README.md" />
     <None Include="vcpkg.json" />
     <None Include="vcpkg-configuration.json" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -103,6 +103,9 @@
     <ClCompile Include="src\rootSignature.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\heap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\pch.h">
@@ -175,6 +178,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\rootSignature.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\heap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
