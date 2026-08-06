@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::queue {
+namespace tracer::queue {
 	void initialize(Microsoft::WRL::ComPtr<ID3D12Device15> device);
 
 	Microsoft::WRL::ComPtr<ID3D12CommandQueue1> getCommandQueue();

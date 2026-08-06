@@ -1,6 +1,6 @@
 #pragma once
 
-namespace tracer::graphics {
+namespace tracer {
 	class FrameBuffer {
 	private:
 		struct Implementation;

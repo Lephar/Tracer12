@@ -5,7 +5,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::swapChain {
+namespace tracer::swapChain {
 	namespace {
 		uint32_t width = 0;
 		uint32_t height = 0;
@@ -39,21 +39,19 @@ namespace tracer::graphics::swapChain {
 		Microsoft::WRL::ComPtr<ID3D12Device15> device,
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> queue,
 		uint32_t swapChainWidth,
-		uint32_t swapChainHeight,
-		uint32_t swapChainImageCount,
-		uint32_t swapChainSampleCount,
-		DXGI_FORMAT swapChainDepthStencilFormat,
-		DXGI_FORMAT swapChainRenderTargetFormat
+		uint32_t swapChainHeight
 	) {
 		debug::print("Initializing swap chain:");
 		debug::incrementDepth();
 
 		width = swapChainWidth;
 		height = swapChainHeight;
-		imageCount = swapChainImageCount;
-		sampleCount = swapChainSampleCount;
-		depthStencilFormat = swapChainDepthStencilFormat;
-		renderTargetFormat = swapChainRenderTargetFormat;
+
+		imageCount = 3;
+		sampleCount = 4;
+		depthStencilFormat = DXGI_FORMAT_D32_FLOAT;
+		renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 		debug::print("Swap chain properties set");
 
 		viewport = {

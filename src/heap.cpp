@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics {
+namespace tracer {
 	struct Heap::Implementation {
 		Microsoft::WRL::ComPtr<ID3D12Heap1> heap;
 		uint64_t offset;

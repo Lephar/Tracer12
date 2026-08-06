@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::rootSignature {
+namespace tracer::rootSignature {
 	enum RootParameter {
 		MeshConstantBufferView,
 		CameraConstantBufferView,

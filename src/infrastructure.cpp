@@ -4,7 +4,12 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::infrastructure {
+extern "C" {
+	__declspec(dllexport) extern const uint32_t D3D12SDKVersion = 619;
+	__declspec(dllexport) extern const char* D3D12SDKPath = ".\\D3D12\\";
+}
+
+namespace tracer::infrastructure {
 	namespace {
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory = nullptr;
 		Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter = nullptr;

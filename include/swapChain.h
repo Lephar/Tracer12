@@ -2,18 +2,14 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::swapChain {
+namespace tracer::swapChain {
 	void initialize(
 		HWND window,
 		Microsoft::WRL::ComPtr<IDXGIFactory7> factory,
 		Microsoft::WRL::ComPtr<ID3D12Device15> device,
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> queue,
 		uint32_t swapChainWidth,
-		uint32_t swapChainHeight,
-		uint32_t swapChainImageCount,
-		uint32_t swapChainSampleCount,
-		DXGI_FORMAT swapChainDepthStencilFormat,
-		DXGI_FORMAT swapChainRenderTargetFormat
+		uint32_t swapChainHeight
 	);
 
 	uint32_t getImageCount();

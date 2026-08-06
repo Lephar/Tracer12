@@ -6,7 +6,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::memory {
+namespace tracer::memory {
 	namespace {
 		std::unique_ptr<Heap> uploadHeap;
 		std::unique_ptr<Heap> bufferHeap;

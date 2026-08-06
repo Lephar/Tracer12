@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace tracer::graphics::compiler {
+namespace tracer::compiler {
 	void initialize(std::filesystem::path dataFolder);
 
 	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler();

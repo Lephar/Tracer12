@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics {
+namespace tracer {
 	struct FrameBuffer::Implementation {
 		Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 		Microsoft::WRL::ComPtr<ID3D12Fence1> fence;

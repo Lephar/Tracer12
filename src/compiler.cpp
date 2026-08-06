@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::compiler {
+namespace tracer::compiler {
 	namespace {
 		std::filesystem::path shaderFolder = {};
 

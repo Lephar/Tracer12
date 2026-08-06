@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics {
+namespace tracer {
 	struct Pipeline::Implementation {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	};

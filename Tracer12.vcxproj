@@ -96,7 +96,6 @@
     <ClCompile Include="src\queue.cpp" />
     <ClCompile Include="src\rootSignature.cpp" />
     <ClCompile Include="src\texture.cpp" />
-    <ClCompile Include="src\graphics.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\numerics.cpp" />
     <ClCompile Include="src\precompile.cpp">
@@ -127,7 +126,6 @@
     <ClInclude Include="include\texture.h" />
     <ClInclude Include="include\tracer.h" />
     <ClInclude Include="include\debug.h" />
-    <ClInclude Include="include\graphics.h" />
     <ClInclude Include="include\numerics.h" />
     <ClInclude Include="include\pch.h" />
     <ClInclude Include="include\pipeline.h" />

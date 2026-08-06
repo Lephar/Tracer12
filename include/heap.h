@@ -2,7 +2,7 @@
 
 #include "pch.h"
 
-namespace tracer::graphics {
+namespace tracer {
 	class Heap {
 	private:
 		struct Implementation;

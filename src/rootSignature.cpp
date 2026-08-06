@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::rootSignature {
+namespace tracer::rootSignature {
 	namespace {
 		Microsoft::WRL::ComPtr<ID3D12RootSignature1> rootSignature = nullptr;
 	};

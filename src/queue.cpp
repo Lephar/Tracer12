@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::queue {
+namespace tracer::queue {
 	namespace {
 		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12DebugCommandQueue1> debugCommandQueue = nullptr;

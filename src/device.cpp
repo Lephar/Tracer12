@@ -4,7 +4,7 @@
 
 #include "debug.h"
 
-namespace tracer::graphics::device {
+namespace tracer::device {
 	namespace {
 		Microsoft::WRL::ComPtr<ID3D12Debug6> debug = nullptr;
 		Microsoft::WRL::ComPtr<ID3D12Device15> device = nullptr;
