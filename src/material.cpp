@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "material.h"
 #include "content.h"
+#include "queue.h"
 #include "rootSignature.h"
 #include "debug.h"
 
@@ -177,19 +178,18 @@ namespace tracer::content {
 		return implementation->culling;
 	}
 	
-	void Material::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		auto constantBufferView = getCurrentConstantBufferView() + getMaterialConstantsOffset() + getMaterialConstantAlignment() * implementation->constantIndex;
+	void Material::bind() {
+		const auto commandList = queue::getCommandList();
+		const auto constantBufferView = getCurrentConstantBufferView() + getMaterialConstantsOffset() + getMaterialConstantAlignment() * implementation->constantIndex;
 
-		const uint32_t constants[] = {
+		const std::vector<uint32_t> constants = {
 			implementation->baseColorIndex,
 			implementation->metallicRoughnessIndex,
 			implementation->normalIndex,
 		};
 
-		const uint32_t constantCount = static_cast<uint32_t>(sizeof(constants) / sizeof(uint32_t));
-
 		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::MaterialFactorConstantBufferView, constantBufferView);
-		commandList->SetGraphicsRoot32BitConstants(rootSignature::RootParameter::ConstantIndexConstants, constantCount, constants, 1);
+		commandList->SetGraphicsRoot32BitConstants(rootSignature::RootParameter::ConstantIndexConstants, static_cast<uint32_t>(constants.size()), constants.data(), 1);
 	}
 
 	Material::~Material() = default;

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "light.h"
 #include "content.h"
+#include "queue.h"
 #include "rootSignature.h"
 #include "debug.h"
 
@@ -8,14 +9,6 @@ namespace tracer::content {
 	struct Light::Implementation {
 		uint32_t constantIndex;
 	};
-
-	void Light::bindAll(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		const auto lightConstantBufferView = getCurrentConstantBufferView() + getLightConstantsOffset();
-		const auto lightConstantCount = static_cast<uint32_t>(getLightConstants().size());
-
-		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::LightConstantBufferView, lightConstantBufferView);
-		commandList->SetGraphicsRoot32BitConstant(rootSignature::RootParameter::ConstantIndexConstants, lightConstantCount, 0);
-	}
 
 	Light::Light(cgltf_light* data, cgltf_float* transform) : implementation(std::make_unique<Implementation>()) {
 		debug::print("Light: %s", data->name ? data->name : "");
@@ -44,4 +37,14 @@ namespace tracer::content {
 	}
 
 	Light::~Light() = default;
+
+	void Light::bindAll() {
+		const auto commandList = queue::getCommandList();
+
+		const auto lightConstantBufferView = getCurrentConstantBufferView() + getLightConstantsOffset();
+		const auto lightConstantCount = static_cast<uint32_t>(getLightConstants().size());
+
+		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::LightConstantBufferView, lightConstantBufferView);
+		commandList->SetGraphicsRoot32BitConstant(rootSignature::RootParameter::ConstantIndexConstants, lightConstantCount, 0);
+	}
 }

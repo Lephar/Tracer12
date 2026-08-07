@@ -1,9 +1,6 @@
 #include "pch.h"
-
 #include "node.h"
-
 #include "content.h"
-
 #include "debug.h"
 
 namespace tracer::content {
@@ -59,15 +56,15 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Node::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
+	void Node::draw(bool blending, bool culling) {
 		if (implementation->meshIndex.has_value()) {
 			auto& meshes = getMeshes();
 			auto& mesh = meshes.at(implementation->meshIndex.value());
-			mesh.draw(commandList, blending, culling);
+			mesh.draw(blending, culling);
 		}
 
 		for (auto& child : implementation->children) {
-			child.draw(commandList, blending, culling);
+			child.draw(blending, culling);
 		}
 	}
 	

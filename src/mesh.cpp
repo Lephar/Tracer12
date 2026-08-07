@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "mesh.h"
 #include "content.h"
+#include "queue.h"
 #include "rootSignature.h"
 #include "debug.h"
 
@@ -49,15 +50,17 @@ namespace tracer::content {
 		return *this;
 	}
 	
-	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
-		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
+	void Mesh::draw(bool blending, bool culling) {
+		const auto commandList = queue::getCommandList();
+		const auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
+
 		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::MeshConstantBufferView, constantBufferView);
 
 		auto& primitives = getPrimitives();
 
 		for (uint32_t primitiveIndex = 0; primitiveIndex < implementation->primitiveCount; primitiveIndex++) {
 			auto& primitive = primitives.at(implementation->primitiveBegin + primitiveIndex);
-			primitive.draw(commandList, blending, culling);
+			primitive.draw(blending, culling);
 		}
 	}
 	

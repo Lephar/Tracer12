@@ -24,9 +24,8 @@ namespace tracer::content {
 		Camera(Camera&& camera) noexcept;
 		Camera& operator=(Camera&& camera) noexcept;
 
-		void adjust(float aspectRatio);
 		void update(DirectX::SimpleMath::Matrix transform, DirectX::SimpleMath::Matrix view);
-		void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void bind();
 
 		~Camera();
 	};

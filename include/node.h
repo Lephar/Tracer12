@@ -16,7 +16,7 @@ namespace tracer::content {
 		Node(Node&& node) noexcept;
 		Node& operator=(Node&& node) noexcept;
 
-		void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling);
+		void draw(bool blending, bool culling);
 
 		~Node();
 	};

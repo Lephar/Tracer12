@@ -80,12 +80,6 @@ namespace tracer::content {
 		assets.emplace_back("sponza", "sponza_curtains.gltf");
 		assets.emplace_back("sponza", "sponza_ivy.gltf");
 
-		const auto aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
-		
-		for (auto& camera : cameras) {
-			camera.adjust(aspectRatio);
-		}
-
 		defaultCameraIndex = 0;
 
 		meshConstantsOffset = 0;
@@ -221,7 +215,7 @@ namespace tracer::content {
 
 			auto& texture = textures.at(textureIndex);
 			auto shaderResourceView = shaderResourceDescriptorHeap->GetCpuHandle(textureIndex);
-			texture.createResources(device, shaderResourceView);
+			texture.createResources(shaderResourceView);
 			
 			debug::decrementDepth();
 		}
@@ -276,8 +270,7 @@ namespace tracer::content {
 			debug::print("Texture: %u", textureIndex);
 			debug::incrementDepth();
 
-			auto& texture = textures.at(textureIndex);
-			texture.recordUpload(commandList);
+			textures.at(textureIndex).recordUpload();
 
 			debug::decrementDepth();
 		}
@@ -404,9 +397,8 @@ namespace tracer::content {
 		commandList->SetGraphicsRootSignature(rootSignature.Get());
 		commandList->SetGraphicsRootDescriptorTable(rootSignature::RootParameter::TexturesDescriptorTable, descriptorTable);
 
-		auto& camera = cameras.at(defaultCameraIndex);
-		camera.bind(commandList);
-		Light::bindAll(commandList);
+		cameras.at(defaultCameraIndex).bind();
+		Light::bindAll();
 	}
 
 	void draw() {
@@ -419,7 +411,7 @@ namespace tracer::content {
 				commandList->SetPipelineState(pipeline::getPipelineState(blending, culling).Get());
 
 				for (auto& asset : assets) {
-					asset.draw(commandList, blending, culling);
+					asset.draw(blending, culling);
 				}
 			}
 		}

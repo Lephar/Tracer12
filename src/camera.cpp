@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "camera.h"
 #include "content.h"
+#include "system.h"
+#include "queue.h"
 #include "rootSignature.h"
 #include "debug.h"
 
@@ -26,8 +28,12 @@ namespace tracer::content {
 		implementation->fieldOfView = perspective.yfov;
 		debug::print("Field of view: %g", implementation->fieldOfView);
 
-		implementation->aspectRatio = perspective.has_aspect_ratio ? perspective.aspect_ratio : 1.0f;
+		implementation->aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
 		debug::print("Aspect ratio:  %g", implementation->aspectRatio);
+
+		if (perspective.has_aspect_ratio) {
+			debug::print("Changed from:  %g", perspective.aspect_ratio);
+		}
 
 		implementation->nearPlane = perspective.znear;
 		debug::print("Near plane:    %g", implementation->nearPlane);
@@ -45,13 +51,15 @@ namespace tracer::content {
 
 		auto& constant = constants.back();
 		constant.view = implementation->transform.Invert();
+		constant.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
+
 		constant.properties = {
 			implementation->fieldOfView,
 			implementation->aspectRatio,
 			implementation->nearPlane,
 			implementation->farPlane,
 		};
-
+		
 		debug::decrementDepth();
 	}
 
@@ -62,15 +70,6 @@ namespace tracer::content {
 		return *this;
 	}
 
-	void Camera::adjust(float aspectRatio) {
-		auto& constants = getCameraConstants();
-		auto& constant = constants.at(implementation->constantIndex);
-
-		implementation->aspectRatio = aspectRatio;
-		constant.properties.y = implementation->aspectRatio;
-		constant.projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(implementation->fieldOfView, implementation->aspectRatio, implementation->farPlane, implementation->nearPlane);
-	}
-
 	void Camera::update(DirectX::SimpleMath::Matrix transform, DirectX::SimpleMath::Matrix view) {
 		auto& constant = getCameraConstants().at(implementation->constantIndex);
 
@@ -78,8 +77,10 @@ namespace tracer::content {
 		constant.position = DirectX::SimpleMath::Vector4::Transform(DirectX::SimpleMath::Vector4::UnitW, transform * implementation->transform);
 	}
 
-	void Camera::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Camera::bind() {
+		const auto commandList = queue::getCommandList();
 		auto constantBufferView = getCurrentConstantBufferView() + getCameraConstantsOffset() + getCameraConstantAlignment() * implementation->constantIndex;
+
 		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::CameraConstantBufferView, constantBufferView);
 	}
 

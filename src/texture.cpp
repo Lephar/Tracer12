@@ -1,9 +1,8 @@
 #include "pch.h"
-
 #include "texture.h"
-
 #include "content.h"
-
+#include "device.h"
+#include "queue.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -34,8 +33,9 @@ namespace tracer::content {
 		return *this;
 	}
 
-	void Texture::createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, D3D12_CPU_DESCRIPTOR_HANDLE textureView) {
-		auto& metadata = implementation->image.GetMetadata();
+	void Texture::createResources(D3D12_CPU_DESCRIPTOR_HANDLE textureView) {
+		const auto device = device::getDevice();
+		const auto& metadata = implementation->image.GetMetadata();
 
 		debug::verify::positive(DirectX::IsSupportedTexture(device.Get(), metadata));
 		debug::print("Texture support checked");
@@ -71,7 +71,9 @@ namespace tracer::content {
 		debug::print("Texture upload heap created");
 	}
 
-	void Texture::recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void Texture::recordUpload() {
+		const auto commandList = queue::getCommandList();
+
 		UpdateSubresources(commandList.Get(), implementation->texture.Get(), implementation->buffer.Get(), 0, 0, static_cast<uint32_t>(implementation->subresources.size()), implementation->subresources.data());
 		debug::print("Upload command recorded");
 

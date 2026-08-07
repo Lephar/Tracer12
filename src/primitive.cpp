@@ -1,9 +1,7 @@
 #include "pch.h"
-
 #include "primitive.h"
-
 #include "content.h"
-
+#include "queue.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -146,11 +144,12 @@ namespace tracer::content {
 		return *this;
 	}
 
-	void Primitive::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
+	void Primitive::draw(bool blending, bool culling) {
+		const auto commandList = queue::getCommandList();
 		auto& material = getMaterials().at(implementation->materialIndex);
 
 		if (blending == material.blending() && culling == material.culling()) {
-			material.bind(commandList);
+			material.bind();
 			commandList->DrawIndexedInstanced(implementation->indexCount, 1, implementation->indexBegin, implementation->vertexOffset, 0);
 		}
 	}

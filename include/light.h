@@ -13,8 +13,6 @@ namespace tracer::content {
 			DirectX::SimpleMath::Vector4 color;
 		};
 
-		static void bindAll(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
-
 		Light(cgltf_light* data, cgltf_float* transform);
 
 		Light(const Light& light) = delete;
@@ -24,5 +22,7 @@ namespace tracer::content {
 		Light& operator=(Light&& light) noexcept;
 
 		~Light();
+
+		static void bindAll();
 	};
 }

@@ -26,7 +26,7 @@ namespace tracer::content {
 		bool blending();
 		bool culling();
 
-		void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+		void bind();
 
 		~Material();
 	};
