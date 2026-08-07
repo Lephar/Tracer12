@@ -30,9 +30,8 @@ namespace tracer {
 			infrastructure::initialize();
 
 			const auto factory = infrastructure::getFactory();
-			const auto adapter = infrastructure::getAdapter();
 
-			device::initialize(adapter);
+			device::initialize();
 
 			const auto device = device::getDevice();
 

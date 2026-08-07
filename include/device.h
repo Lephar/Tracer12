@@ -3,7 +3,7 @@
 #include "pch.h"
 
 namespace tracer::device {
-	void initialize(Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter);
+	void initialize();
 
 	Microsoft::WRL::ComPtr<ID3D12Device15> getDevice();
 }

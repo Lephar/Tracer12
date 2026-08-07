@@ -1,7 +1,6 @@
 #include "pch.h"
-
 #include "device.h"
-
+#include "infrastructure.h"
 #include "debug.h"
 
 namespace tracer::device {
@@ -18,7 +17,7 @@ namespace tracer::device {
 		}
 	}
 
-	void initialize(Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter) {
+	void initialize() {
 		debug::print("Initializing device:");
 		debug::incrementDepth();
 		
@@ -39,7 +38,7 @@ namespace tracer::device {
 			debug::print("Device objects auto naming enabled");
 		}
 
-		debug::verify::com(D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(device.GetAddressOf())));
+		debug::verify::com(D3D12CreateDevice(infrastructure::getAdapter().Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(device.GetAddressOf())));
 		debug::print("Device created with feature level 12.2");
 
 		if (debug::enabled) {
