@@ -25,7 +25,7 @@ namespace tracer {
 			const auto height = system::getHeight();
 			const auto aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
-			compiler::initialize(dataFolder);
+			compiler::initialize();
 
 			infrastructure::initialize();
 

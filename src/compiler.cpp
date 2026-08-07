@@ -1,7 +1,6 @@
 #include "pch.h"
-
 #include "compiler.h"
-
+#include "system.h"
 #include "debug.h"
 
 namespace tracer::compiler {
@@ -14,11 +13,11 @@ namespace tracer::compiler {
 		std::vector<LPCWSTR> arguments = {};
 	}
 
-	void initialize(std::filesystem::path dataFolder) {
+	void initialize() {
 		debug::print("Initializing compiler:");
 		debug::incrementDepth();
 		
-		shaderFolder = dataFolder / "shaders";
+		shaderFolder = system::getDataFolder() / "shaders";
 		debug::print("Shader folder set: %s", shaderFolder.string().c_str());
 
 		debug::verify::com(DxcCreateInstance2(nullptr, CLSID_DxcCompiler, IID_PPV_ARGS(compiler.GetAddressOf())));

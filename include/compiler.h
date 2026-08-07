@@ -3,7 +3,7 @@
 #include "pch.h"
 
 namespace tracer::compiler {
-	void initialize(std::filesystem::path dataFolder);
+	void initialize();
 
 	Microsoft::WRL::ComPtr<IDxcCompiler3> getCompiler();
 	Microsoft::WRL::ComPtr<IDxcUtils> getUtils();
