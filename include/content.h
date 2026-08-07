@@ -12,7 +12,7 @@
 #include "asset.h"
 
 namespace tracer::content {
-	void load(std::filesystem::path dataFolder, float aspectRatio);
+	void load();
 
 	std::filesystem::path getAssetFolder();
 
@@ -42,8 +42,8 @@ namespace tracer::content {
 	uint32_t getLightConstantsOffset();
 	uint32_t getConstantBufferSize();
 	
-	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device);
-	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
+	void createResources();
+	void recordUpload();
 	void clearStaging();
 
 	D3D12_GPU_VIRTUAL_ADDRESS getCurrentConstantBufferView();

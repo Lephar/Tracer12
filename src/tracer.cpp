@@ -23,7 +23,6 @@ namespace tracer {
 			const auto window = system::getWindow();
 			const auto width = system::getWidth();
 			const auto height = system::getHeight();
-			const auto aspectRatio = static_cast<float>(width) / static_cast<float>(height);
 
 			compiler::initialize();
 
@@ -46,13 +45,13 @@ namespace tracer {
 			const auto depthStencilFormat = swapChain::getDepthStencilFormat();
 			const auto renderTargetFormat = swapChain::getRenderTargetFormat();
 
-			content::load(dataFolder, aspectRatio);
+			content::load();
 
 			const auto constantBufferSize = content::getConstantBufferSize();
 			const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
 
 			swapChain::createResources();
-			content::createResources(device);
+			content::createResources();
 
 			rootSignature::create(device, textureCount);
 
@@ -73,7 +72,7 @@ namespace tracer {
 			}
 
 			queue::begin();
-			content::recordUpload(commandList);
+			content::recordUpload();
 			queue::end();
 			queue::execute();
 			queue::signal();

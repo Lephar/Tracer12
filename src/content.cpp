@@ -1,9 +1,10 @@
 #include "pch.h"
-
 #include "content.h"
-
-#include "debug.h"
+#include "system.h"
+#include "device.h"
+#include "queue.h"
 #include "numerics.h"
+#include "debug.h"
 
 namespace tracer::content {
 	namespace {
@@ -61,9 +62,11 @@ namespace tracer::content {
 		DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
 	}
 
-	void load(std::filesystem::path dataFolder, float aspectRatio) {
+	void load() {
 		debug::print("Loading content:");
 		debug::incrementDepth();
+
+		const auto dataFolder = system::getDataFolder();
 
 		assetFolder = dataFolder / "assets";
 		debug::print("Asset folder set: %s", assetFolder.string().c_str());
@@ -73,6 +76,8 @@ namespace tracer::content {
 		assets.emplace_back("sponza", "sponza.gltf");
 		assets.emplace_back("sponza", "sponza_curtains.gltf");
 		assets.emplace_back("sponza", "sponza_ivy.gltf");
+
+		const auto aspectRatio = static_cast<float>(system::getWidth()) / static_cast<float>(system::getHeight());
 		
 		for (auto& camera : cameras) {
 			camera.adjust(aspectRatio);
@@ -193,9 +198,11 @@ namespace tracer::content {
 		return constantBufferSize;
 	}
 
-	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device) {
+	void createResources() {
 		debug::print("Creating content resources:");
 		debug::incrementDepth();
+
+		const auto device = device::getDevice();
 
 		const auto textureCount = static_cast<uint32_t>(textures.size());
 		shaderResourceDescriptorHeap = std::make_unique<DirectX::DescriptorHeap>(device.Get(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, textureCount);
@@ -252,9 +259,11 @@ namespace tracer::content {
 		debug::decrementDepth();
 	}
 
-	void recordUpload(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
+	void recordUpload() {
 		debug::print("Recording content upload:");
 		debug::incrementDepth();
+
+		const auto commandList = queue::getCommandList();
 
 		for (uint32_t textureIndex = 0; textureIndex < textures.size(); textureIndex++) {
 			debug::print("Texture: %u", textureIndex);
