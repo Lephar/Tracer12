@@ -1,9 +1,7 @@
 #include "pch.h"
-
 #include "camera.h"
-
 #include "content.h"
-
+#include "rootSignature.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -82,7 +80,7 @@ namespace tracer::content {
 
 	void Camera::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
 		auto constantBufferView = getCurrentConstantBufferView() + getCameraConstantsOffset() + getCameraConstantAlignment() * implementation->constantIndex;
-		commandList->SetGraphicsRootConstantBufferView(1, constantBufferView);
+		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::CameraConstantBufferView, constantBufferView);
 	}
 
 	Camera::~Camera() = default;

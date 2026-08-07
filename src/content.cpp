@@ -402,7 +402,7 @@ namespace tracer::content {
 
 		commandList->SetDescriptorHeaps(1, &descriptorHeap);
 		commandList->SetGraphicsRootSignature(rootSignature.Get());
-		commandList->SetGraphicsRootDescriptorTable(5, descriptorTable);
+		commandList->SetGraphicsRootDescriptorTable(rootSignature::RootParameter::TexturesDescriptorTable, descriptorTable);
 
 		auto& camera = cameras.at(defaultCameraIndex);
 		camera.bind(commandList);

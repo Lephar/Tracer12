@@ -1,9 +1,7 @@
 #include "pch.h"
-
 #include "mesh.h"
-
 #include "content.h"
-
+#include "rootSignature.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -53,7 +51,7 @@ namespace tracer::content {
 	
 	void Mesh::draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
 		auto constantBufferView = getCurrentConstantBufferView() + getMeshConstantsOffset() + getMeshConstantAlignment() * implementation->constantIndex;
-		commandList->SetGraphicsRootConstantBufferView(0, constantBufferView);
+		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::MeshConstantBufferView, constantBufferView);
 
 		auto& primitives = getPrimitives();
 

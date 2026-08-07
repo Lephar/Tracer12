@@ -1,9 +1,7 @@
 #include "pch.h"
-
 #include "material.h"
-
 #include "content.h"
-
+#include "rootSignature.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -190,8 +188,8 @@ namespace tracer::content {
 
 		const uint32_t constantCount = static_cast<uint32_t>(sizeof(constants) / sizeof(uint32_t));
 
-		commandList->SetGraphicsRootConstantBufferView(2, constantBufferView);
-		commandList->SetGraphicsRoot32BitConstants(4, constantCount, constants, 1);
+		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::MaterialFactorConstantBufferView, constantBufferView);
+		commandList->SetGraphicsRoot32BitConstants(rootSignature::RootParameter::ConstantIndexConstants, constantCount, constants, 1);
 	}
 
 	Material::~Material() = default;

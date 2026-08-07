@@ -1,9 +1,7 @@
 #include "pch.h"
-
 #include "light.h"
-
 #include "content.h"
-
+#include "rootSignature.h"
 #include "debug.h"
 
 namespace tracer::content {
@@ -15,8 +13,8 @@ namespace tracer::content {
 		const auto lightConstantBufferView = getCurrentConstantBufferView() + getLightConstantsOffset();
 		const auto lightConstantCount = static_cast<uint32_t>(getLightConstants().size());
 
-		commandList->SetGraphicsRootConstantBufferView(3, lightConstantBufferView);
-		commandList->SetGraphicsRoot32BitConstant(4, lightConstantCount, 0);
+		commandList->SetGraphicsRootConstantBufferView(rootSignature::RootParameter::LightConstantBufferView, lightConstantBufferView);
+		commandList->SetGraphicsRoot32BitConstant(rootSignature::RootParameter::ConstantIndexConstants, lightConstantCount, 0);
 	}
 
 	Light::Light(cgltf_light* data, cgltf_float* transform) : implementation(std::make_unique<Implementation>()) {
