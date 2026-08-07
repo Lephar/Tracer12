@@ -3,6 +3,7 @@
 #include "system.h"
 #include "device.h"
 #include "queue.h"
+#include "swapChain.h"
 #include "rootSignature.h"
 #include "pipeline.h"
 #include "numerics.h"
@@ -338,12 +339,12 @@ namespace tracer::content {
 		return currentConstantBufferView;
 	}
 	
-	void update(DirectX::SimpleMath::Vector2 mouseMovement, DirectX::SimpleMath::Vector3 keyboardMovement) {
+	void update() {
 		const auto turnSpeed = 1.0f;
 		const auto moveSpeed = 4.0f;
 
-		mouseMovement *= turnSpeed;
-		keyboardMovement *= moveSpeed;
+		const auto mouseMovement = turnSpeed * system::getMouseMovement();
+		const auto keyboardMovement = moveSpeed * system::getKeyboardMovement();
 
 		forward = DirectX::SimpleMath::Vector3::Transform(forward, DirectX::SimpleMath::Matrix::CreateFromAxisAngle(up, mouseMovement.x));
 
@@ -360,7 +361,11 @@ namespace tracer::content {
 		cameras.at(defaultCameraIndex).update(transform, view);
 	}
 
-	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer) {
+	void bind() {
+		const auto commandList = queue::getCommandList();
+		const auto constantBuffer = swapChain::getCurrentConstantBuffer();
+		const auto rootSignature = rootSignature::getRootSignature();
+
 		CD3DX12_RANGE readRange(0, 0);
 		uint8_t* constantBufferMemory;
 		debug::verify::com(constantBuffer->Map(0, &readRange, reinterpret_cast<void**>(&constantBufferMemory)));
@@ -390,7 +395,9 @@ namespace tracer::content {
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetIndexBuffer(&indexBufferView);
 		commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+
 		commandList->SetDescriptorHeaps(1, &descriptorHeap);
+		commandList->SetGraphicsRootSignature(rootSignature.Get());
 		commandList->SetGraphicsRootDescriptorTable(5, descriptorTable);
 
 		auto& camera = cameras.at(defaultCameraIndex);
@@ -398,11 +405,19 @@ namespace tracer::content {
 		Light::bindAll(commandList);
 	}
 
-	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
-		commandList->SetPipelineState(pipeline::getPipelineState(blending, culling).Get());
+	void draw() {
+		const auto commandList = queue::getCommandList();
 
-		for (auto& asset : assets) {
-			asset.draw(commandList, blending, culling);
+		const std::vector<bool> states{ false, true };
+
+		for (const auto blending : states) {
+			for (const auto culling : states) {
+				commandList->SetPipelineState(pipeline::getPipelineState(blending, culling).Get());
+
+				for (auto& asset : assets) {
+					asset.draw(commandList, blending, culling);
+				}
+			}
 		}
 	}
 }

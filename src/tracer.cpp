@@ -51,22 +51,15 @@ namespace tracer {
 				const auto mouseMovement = system::getMouseMovement();
 				const auto keyboardMovement = system::getKeyboardMovement();
 
-				content::update(mouseMovement, keyboardMovement);
+				content::update();
 
 				swapChain::begin(commandList, fenceEvent);
-				rootSignature::bind(commandList);
 
 				const auto constantBuffer = swapChain::getCurrentConstantBuffer();
 
-				content::bind(commandList, constantBuffer);
+				content::bind();
 
-				const std::vector<bool> states{ false, true };
-
-				for (const auto blending : states) {
-					for (const auto culling : states) {
-						content::draw(commandList, blending, culling);
-					}
-				}
+				content::draw();
 
 				swapChain::end(commandList);
 				queue::execute();

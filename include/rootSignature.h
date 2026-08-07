@@ -15,6 +15,4 @@ namespace tracer::rootSignature {
 	void create();
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> getRootSignature();
-
-	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList);
 }

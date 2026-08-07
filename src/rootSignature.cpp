@@ -73,8 +73,4 @@ namespace tracer::rootSignature {
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> getRootSignature() {
 		return rootSignature;
 	}
-
-	void bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		commandList->SetGraphicsRootSignature(rootSignature.Get());
-	}
 }
