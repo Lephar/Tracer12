@@ -9,17 +9,7 @@ namespace tracer {
 		std::unique_ptr<Implementation> implementation;
 
 	public:
-		Pipeline(
-			Microsoft::WRL::ComPtr<ID3D12Device15> device,
-			Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
-			Microsoft::WRL::ComPtr<IDxcBlob> vertexShader,
-			Microsoft::WRL::ComPtr<IDxcBlob> pixelShader,
-			uint32_t sampleCount,
-			DXGI_FORMAT depthStencilFormat,
-			DXGI_FORMAT renderTargetFormat,
-			bool blending,
-			bool culling
-		);
+		Pipeline(Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, bool blending, bool culling);
 
 		Pipeline(const Pipeline& pipeline) = delete;
 		Pipeline& operator=(const Pipeline& pipeline) = delete;

@@ -1,7 +1,8 @@
 #include "pch.h"
-
 #include "pipeline.h"
-
+#include "device.h"
+#include "swapChain.h"
+#include "rootSignature.h"
 #include "debug.h"
 
 namespace tracer {
@@ -9,19 +10,15 @@ namespace tracer {
 		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	};
 
-	Pipeline::Pipeline(
-		Microsoft::WRL::ComPtr<ID3D12Device15> device,
-		Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature,
-		Microsoft::WRL::ComPtr<IDxcBlob> vertexShader,
-		Microsoft::WRL::ComPtr<IDxcBlob> pixelShader,
-		uint32_t sampleCount,
-		DXGI_FORMAT depthStencilFormat,
-		DXGI_FORMAT renderTargetFormat,
-		bool blending,
-		bool culling
-	) : implementation(std::make_unique<Implementation>()) {
+	Pipeline::Pipeline(Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, bool blending, bool culling) : implementation(std::make_unique<Implementation>()) {
 		debug::print("Creating pipeline:");
 		debug::incrementDepth();
+
+		const auto device = device::getDevice();
+		const auto sampleCount = swapChain::getSampleCount();
+		const auto depthStencilFormat = swapChain::getDepthStencilFormat();
+		const auto renderTargetFormat = swapChain::getRenderTargetFormat();
+		const auto rootSignature = rootSignature::getRootSignature();
 
 		debug::print("Blending %s", blending ? "enabled" : "disable");
 		debug::print("Culling %s", culling ? "enabled" : "disable");

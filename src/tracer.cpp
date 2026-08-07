@@ -65,7 +65,7 @@ namespace tracer {
 			for (const auto blending : states) {
 				for (const auto culling : states) {
 					std::pair<bool, bool> key{ blending, culling };
-					Pipeline value{ device, rootSignature, vertexShader, pixelShader, sampleCount, depthStencilFormat, renderTargetFormat, blending, culling };
+					Pipeline value{ vertexShader, pixelShader, blending, culling };
 
 					pipelines.emplace(std::make_pair(key, std::move(value)));
 				}
