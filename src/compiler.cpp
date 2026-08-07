@@ -28,10 +28,17 @@ namespace tracer::compiler {
 		debug::print("Shader compilation utilities created");
 
 		arguments = {
-			DXC_ARG_DEBUG,
-			DXC_ARG_SKIP_OPTIMIZATIONS,
 			DXC_ARG_WARNINGS_ARE_ERRORS,
 		};
+
+		if (debug::enabled) {
+			arguments.push_back(DXC_ARG_DEBUG);
+			arguments.push_back(DXC_ARG_SKIP_OPTIMIZATIONS);
+		}
+		else {
+			arguments.push_back(DXC_ARG_OPTIMIZATION_LEVEL3);
+		}
+
 		debug::print("Shader compilation arguments set");
 
 		debug::decrementDepth();
