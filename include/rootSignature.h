@@ -12,7 +12,7 @@ namespace tracer::rootSignature {
 		TexturesDescriptorTable,
 	};
 	
-	void create(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t textureCount);
+	void create();
 
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> getRootSignature();
 

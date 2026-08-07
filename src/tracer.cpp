@@ -53,7 +53,7 @@ namespace tracer {
 			swapChain::createResources();
 			content::createResources();
 
-			rootSignature::create(device, textureCount);
+			rootSignature::create();
 
 			const auto rootSignature = rootSignature::getRootSignature();
 

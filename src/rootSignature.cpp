@@ -1,7 +1,7 @@
 #include "pch.h"
-
 #include "rootSignature.h"
-
+#include "device.h"
+#include "content.h"
 #include "debug.h"
 
 namespace tracer::rootSignature {
@@ -9,9 +9,12 @@ namespace tracer::rootSignature {
 		Microsoft::WRL::ComPtr<ID3D12RootSignature1> rootSignature = nullptr;
 	};
 
-	void create(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t textureCount) {
+	void create() {
 		debug::print("Creating root signature:");
 		debug::incrementDepth();
+
+		const auto device = device::getDevice();
+		const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
 
 		std::vector<CD3DX12_ROOT_PARAMETER1> rootParameters;
 
