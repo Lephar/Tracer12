@@ -212,9 +212,12 @@ namespace tracer::swapChain {
 		debug::decrementDepth();
 	}
 	
-	void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
+	void begin() {
 		imageIndex = swapChain->GetCurrentBackBufferIndex();
 		auto& frameBuffer = frameBuffers.at(imageIndex);
+
+		const auto commandList = queue::getCommandList();
+		const auto fenceEvent = queue::getFenceEvent();
 
 		frameBuffer.wait(commandList, fenceEvent);
 		frameBuffer.begin(commandList, depthStencilView);
@@ -227,12 +230,12 @@ namespace tracer::swapChain {
 		return frameBuffers.at(imageIndex).getConstantBuffer();
 	}
 
-	void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		frameBuffers.at(imageIndex).end(commandList, renderTargetFormat);
+	void end() {
+		frameBuffers.at(imageIndex).end(queue::getCommandList(), renderTargetFormat);
 	}
 
-	void present(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue) {
-		frameBuffers.at(imageIndex).signal(commandQueue);
+	void present() {
+		frameBuffers.at(imageIndex).signal(queue::getCommandQueue());
 
 		DXGI_PRESENT_PARAMETERS presentParameters = {};
 		debug::verify::com(swapChain->Present1(0, 0, &presentParameters));

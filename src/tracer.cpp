@@ -53,7 +53,7 @@ namespace tracer {
 
 				content::update();
 
-				swapChain::begin(commandList, fenceEvent);
+				swapChain::begin();
 
 				const auto constantBuffer = swapChain::getCurrentConstantBuffer();
 
@@ -61,9 +61,9 @@ namespace tracer {
 
 				content::draw();
 
-				swapChain::end(commandList);
+				swapChain::end();
 				queue::execute();
-				swapChain::present(commandQueue);
+				swapChain::present();
 			}
 		}
 
