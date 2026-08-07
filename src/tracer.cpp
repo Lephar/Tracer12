@@ -35,7 +35,7 @@ namespace tracer {
 
 			const auto device = device::getDevice();
 
-			queue::initialize(device);
+			queue::initialize();
 
 			const auto queue = queue::getCommandQueue();
 			const auto commandList = queue::getCommandList();

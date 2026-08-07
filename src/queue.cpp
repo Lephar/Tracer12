@@ -1,7 +1,6 @@
 #include "pch.h"
-
 #include "queue.h"
-
+#include "device.h"
 #include "debug.h"
 
 namespace tracer::queue {
@@ -15,9 +14,11 @@ namespace tracer::queue {
 		uint64_t fenceValue = 0;
 	}
 
-	void initialize(Microsoft::WRL::ComPtr<ID3D12Device15> device) {
+	void initialize() {
 		debug::print("Initializing queue:");
 		debug::incrementDepth();
+
+		const auto device = device::getDevice();
 
 		D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {
 			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
