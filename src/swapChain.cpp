@@ -1,15 +1,15 @@
 #include "pch.h"
-
 #include "swapChain.h"
 #include "frameBuffer.h"
-
+#include "system.h"
+#include "infrastructure.h"
+#include "device.h"
+#include "queue.h"
+#include "content.h"
 #include "debug.h"
 
 namespace tracer::swapChain {
 	namespace {
-		uint32_t width = 0;
-		uint32_t height = 0;
-
 		uint32_t imageCount = 0;
 		uint32_t sampleCount = 0;
 
@@ -33,19 +33,9 @@ namespace tracer::swapChain {
 		uint32_t imageIndex = UINT32_MAX;
 	}
 
-	void initialize(
-		HWND window,
-		Microsoft::WRL::ComPtr<IDXGIFactory7> factory,
-		Microsoft::WRL::ComPtr<ID3D12Device15> device,
-		Microsoft::WRL::ComPtr<ID3D12CommandQueue1> queue,
-		uint32_t swapChainWidth,
-		uint32_t swapChainHeight
-	) {
+	void initialize() {
 		debug::print("Initializing swap chain:");
 		debug::incrementDepth();
-
-		width = swapChainWidth;
-		height = swapChainHeight;
 
 		imageCount = 3;
 		sampleCount = 4;
@@ -53,6 +43,13 @@ namespace tracer::swapChain {
 		renderTargetFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 		debug::print("Swap chain properties set");
+
+		const auto width = system::getWidth();
+		const auto height = system::getHeight();
+		const auto window = system::getWindow();
+		const auto factory = infrastructure::getFactory();
+		const auto device = device::getDevice();
+		const auto queue = queue::getCommandQueue();
 
 		viewport = {
 			.TopLeftX = 0,
@@ -134,9 +131,14 @@ namespace tracer::swapChain {
 		return renderTargetFormat;
 	}
 
-	void createResources(Microsoft::WRL::ComPtr<ID3D12Device15> device, uint32_t constantBufferSize) {
+	void createResources() {
 		debug::print("Creating swap chain resources:");
 		debug::incrementDepth();
+
+		const auto width = system::getWidth();
+		const auto height = system::getHeight();
+		const auto device = device::getDevice();
+		const auto constantBufferSize = content::getConstantBufferSize();
 
 		const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);

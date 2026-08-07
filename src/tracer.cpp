@@ -40,7 +40,7 @@ namespace tracer {
 			const auto queue = queue::getCommandQueue();
 			const auto commandList = queue::getCommandList();
 
-			swapChain::initialize(window, factory, device, queue, width, height);
+			swapChain::initialize();
 
 			const auto sampleCount = swapChain::getSampleCount();
 			const auto depthStencilFormat = swapChain::getDepthStencilFormat();
@@ -51,7 +51,7 @@ namespace tracer {
 			const auto constantBufferSize = content::getConstantBufferSize();
 			const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
 
-			swapChain::createResources(device, constantBufferSize);
+			swapChain::createResources();
 			content::createResources(device);
 
 			rootSignature::create(device, textureCount);
