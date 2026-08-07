@@ -14,8 +14,6 @@
 
 namespace tracer {
 	namespace {
-		std::map<std::pair<bool, bool>, Pipeline> pipelines;
-		
 		void initialize() {
 			system::initialize();
 			compiler::initialize();
@@ -25,24 +23,12 @@ namespace tracer {
 			swapChain::initialize();
 
 			content::load();
+
 			rootSignature::create();
+			pipeline::create();
 
 			swapChain::createResources();
 			content::createResources();
-
-			const auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
-			const auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
-
-			const std::vector<bool> states{ false, true };
-
-			for (const auto blending : states) {
-				for (const auto culling : states) {
-					std::pair<bool, bool> key{ blending, culling };
-					Pipeline value{ vertexShader, pixelShader, blending, culling };
-
-					pipelines.emplace(std::make_pair(key, std::move(value)));
-				}
-			}
 
 			queue::begin();
 			content::recordUpload();
@@ -78,7 +64,6 @@ namespace tracer {
 
 				for (const auto blending : states) {
 					for (const auto culling : states) {
-						pipelines.at(std::make_pair(blending, culling)).bind(commandList);
 						content::draw(commandList, blending, culling);
 					}
 				}

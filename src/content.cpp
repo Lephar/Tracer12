@@ -3,6 +3,8 @@
 #include "system.h"
 #include "device.h"
 #include "queue.h"
+#include "rootSignature.h"
+#include "pipeline.h"
 #include "numerics.h"
 #include "debug.h"
 
@@ -397,6 +399,8 @@ namespace tracer::content {
 	}
 
 	void draw(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, bool blending, bool culling) {
+		commandList->SetPipelineState(pipeline::getPipelineState(blending, culling).Get());
+
 		for (auto& asset : assets) {
 			asset.draw(commandList, blending, culling);
 		}

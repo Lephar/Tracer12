@@ -1,17 +1,18 @@
 #include "pch.h"
 #include "pipeline.h"
+#include "compiler.h"
 #include "device.h"
 #include "swapChain.h"
 #include "rootSignature.h"
 #include "debug.h"
 
-namespace tracer {
-	struct Pipeline::Implementation {
-		Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-	};
-
-	Pipeline::Pipeline(Microsoft::WRL::ComPtr<IDxcBlob> vertexShader, Microsoft::WRL::ComPtr<IDxcBlob> pixelShader, bool blending, bool culling) : implementation(std::make_unique<Implementation>()) {
-		debug::print("Creating pipeline:");
+namespace tracer::pipeline {
+	namespace {
+		std::map<std::pair<bool, bool>, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pipelineStates;
+	}
+	
+	void create() {
+		debug::print("Creating pipelines:");
 		debug::incrementDepth();
 
 		const auto device = device::getDevice();
@@ -20,8 +21,8 @@ namespace tracer {
 		const auto renderTargetFormat = swapChain::getRenderTargetFormat();
 		const auto rootSignature = rootSignature::getRootSignature();
 
-		debug::print("Blending %s", blending ? "enabled" : "disable");
-		debug::print("Culling %s", culling ? "enabled" : "disable");
+		const auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
+		const auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
 
 		std::vector<const char*> inputElementSemanticNames{
 			"POSITION",
@@ -50,8 +51,6 @@ namespace tracer {
 			inputElement.AlignedByteOffset = inputElementIndex * sizeof(DirectX::SimpleMath::Vector4);
 		}
 
-		debug::print("Input layout set");
-
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDesc{
 			.pRootSignature = rootSignature.Get(),
 			.VS = {
@@ -62,9 +61,9 @@ namespace tracer {
 				.pShaderBytecode = pixelShader->GetBufferPointer(),
 				.BytecodeLength = pixelShader->GetBufferSize(),
 			},
-			.BlendState = blending ? DirectX::CommonStates::NonPremultiplied : DirectX::CommonStates::Opaque,
+			.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT),
 			.SampleMask = UINT32_MAX,
-			.RasterizerState = culling ? DirectX::CommonStates::CullClockwise : DirectX::CommonStates::CullNone,
+			.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT),
 			.DepthStencilState = DirectX::CommonStates::DepthReverseZ,
 			.InputLayout = {
 				.pInputElementDescs = inputElements.data(),
@@ -82,22 +81,25 @@ namespace tracer {
 			},
 		};
 
-		debug::verify::com(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(implementation->pipelineState.GetAddressOf())));
-		debug::print("Graphics pipeline state created");
+		const std::vector<bool> states{ false, true };
+
+		for (const auto blending : states) {
+			for (const auto culling : states) {
+				pipelineStateDesc.BlendState = blending ? DirectX::CommonStates::NonPremultiplied : DirectX::CommonStates::Opaque;
+				pipelineStateDesc.RasterizerState = culling ? DirectX::CommonStates::CullClockwise : DirectX::CommonStates::CullNone;
+
+				Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
+				debug::verify::com(device->CreateGraphicsPipelineState(&pipelineStateDesc, IID_PPV_ARGS(pipelineState.GetAddressOf())));
+				debug::print("Pipeline state created with blending %s and culling %s", blending ? "enabled" : "disabled", culling ? "enabled" : "disabled");
+
+				pipelineStates.insert(std::make_pair(std::make_pair(blending, culling), pipelineState));
+			}
+		}
 
 		debug::decrementDepth();
 	}
 
-	Pipeline::Pipeline(Pipeline&& pipeline) noexcept : implementation(std::move(pipeline.implementation)) {}
-
-	Pipeline& Pipeline::operator=(Pipeline&& pipeline) noexcept {
-		implementation = std::move(pipeline.implementation);
-		return *this;
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> getPipelineState(bool blending, bool culling) {
+		return pipelineStates.at(std::make_pair(blending, culling));
 	}
-
-	void Pipeline::bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList) {
-		commandList->SetPipelineState(implementation->pipelineState.Get());
-	}
-
-	Pipeline::~Pipeline() = default;
 }
