@@ -18,44 +18,17 @@ namespace tracer {
 		
 		void initialize() {
 			system::initialize();
-
-			const auto dataFolder = system::getDataFolder();
-			const auto window = system::getWindow();
-			const auto width = system::getWidth();
-			const auto height = system::getHeight();
-
 			compiler::initialize();
-
 			infrastructure::initialize();
-
-			const auto factory = infrastructure::getFactory();
-
 			device::initialize();
-
-			const auto device = device::getDevice();
-
 			queue::initialize();
-
-			const auto queue = queue::getCommandQueue();
-			const auto commandList = queue::getCommandList();
-
 			swapChain::initialize();
 
-			const auto sampleCount = swapChain::getSampleCount();
-			const auto depthStencilFormat = swapChain::getDepthStencilFormat();
-			const auto renderTargetFormat = swapChain::getRenderTargetFormat();
-
 			content::load();
-
-			const auto constantBufferSize = content::getConstantBufferSize();
-			const auto textureCount = static_cast<uint32_t>(content::getTextures().size());
+			rootSignature::create();
 
 			swapChain::createResources();
 			content::createResources();
-
-			rootSignature::create();
-
-			const auto rootSignature = rootSignature::getRootSignature();
 
 			const auto vertexShader = compiler::loadShader(L"vertex.hlsl", L"vs_6_9", L"main");
 			const auto pixelShader = compiler::loadShader(L"pixel.hlsl", L"ps_6_9", L"main");
