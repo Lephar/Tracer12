@@ -17,7 +17,7 @@ namespace tracer {
 		std::map<std::pair<bool, bool>, Pipeline> pipelines;
 		
 		void initialize() {
-			system::initialize("Tracer");
+			system::initialize();
 
 			const auto dataFolder = system::getDataFolder();
 			const auto window = system::getWindow();

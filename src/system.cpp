@@ -76,16 +76,16 @@ namespace tracer::system {
 		}
 	}
 
-	void initialize(const char* windowTitle) {
+	void initialize() {
 		debug::print("Initializing system:");
 		debug::incrementDepth();
 
+		title = "Tracer";
+		debug::print("Window title set to %s", title);
+
 		width = 800;
 		height = 600;
-		debug::print("Window size set");
-
-		title = windowTitle;
-		debug::print("Window title set");
+		debug::print("Window size set to %ux%u", width, height);
 
 		debug::verify::com(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 		debug::print("COM library initialized with multithread support");
@@ -114,6 +114,8 @@ namespace tracer::system {
 		window = CreateWindowEx(0, title, title, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX, CW_USEDEFAULT, CW_USEDEFAULT, width, height, nullptr, nullptr, instance, nullptr);
 		debug::verify::win(window);
 		debug::print("Window created");
+
+		assert(window);
 
 		debug::verify::negative(ShowWindow(window, SW_SHOWDEFAULT));
 		debug::print("Window shown");

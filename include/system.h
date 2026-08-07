@@ -3,7 +3,7 @@
 #include "pch.h"
 
 namespace tracer::system {
-	void initialize(const char* title);
+	void initialize();
 
 	uint32_t getWidth();
 	uint32_t getHeight();
