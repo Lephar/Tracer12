@@ -57,11 +57,7 @@ namespace tracer {
 		}
 
 		void destroy() {
-			auto commandQueue = queue::getCommandQueue();
-			auto commandList = queue::getCommandList();
-			auto fenceEvent = queue::getFenceEvent();
-
-			swapChain::destroy(commandQueue, commandList, fenceEvent);
+			swapChain::destroy();
 		}
 	}
 

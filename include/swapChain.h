@@ -18,5 +18,5 @@ namespace tracer::swapChain {
 	void end();
 	void present();
 
-	void destroy(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
+	void destroy();
 }
