@@ -41,27 +41,16 @@ namespace tracer {
 		}
 
 		void loop() {
-			const auto commandQueue = queue::getCommandQueue();
-			const auto commandList = queue::getCommandList();
-			const auto fenceEvent = queue::getFenceEvent();
-
 			system::prepareLoop();
 
 			while (system::poll()) {
-				const auto mouseMovement = system::getMouseMovement();
-				const auto keyboardMovement = system::getKeyboardMovement();
-
 				content::update();
 
 				swapChain::begin();
-
-				const auto constantBuffer = swapChain::getCurrentConstantBuffer();
-
 				content::bind();
-
 				content::draw();
-
 				swapChain::end();
+
 				queue::execute();
 				swapChain::present();
 			}
