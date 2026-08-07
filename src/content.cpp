@@ -60,9 +60,9 @@ namespace tracer::content {
 		D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
 		D3D12_GPU_VIRTUAL_ADDRESS currentConstantBufferView = {};
 
-		DirectX::SimpleMath::Vector3 position = DirectX::SimpleMath::Vector3::Zero;
-		DirectX::SimpleMath::Vector3 forward = DirectX::SimpleMath::Vector3::UnitZ;
-		DirectX::SimpleMath::Vector3 up = DirectX::SimpleMath::Vector3::UnitY;
+		DirectX::SimpleMath::Vector3 position = {};
+		DirectX::SimpleMath::Vector3 forward = {};
+		DirectX::SimpleMath::Vector3 up = {};
 	}
 
 	void load() {
@@ -105,6 +105,10 @@ namespace tracer::content {
 		lightConstantsSize = static_cast<uint32_t>(align(lightConstants.size() * lightConstantAlignment, D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT));
 
 		constantBufferSize = static_cast<uint32_t>(align(lightConstantsOffset + lightConstantsSize, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT));
+
+		position = DirectX::SimpleMath::Vector3::Zero;
+		forward = DirectX::SimpleMath::Vector3::UnitZ;
+		up = DirectX::SimpleMath::Vector3::UnitY;
 
 		debug::decrementDepth();
 	}
