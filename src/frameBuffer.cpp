@@ -1,7 +1,8 @@
 #include "pch.h"
-
+#include "swapChain.h"
 #include "frameBuffer.h"
-
+#include "device.h"
+#include "queue.h"
 #include "debug.h"
 
 namespace tracer {
@@ -48,17 +49,19 @@ namespace tracer {
 		debug::print("Barriers set");
 	}
 	
-	void FrameBuffer::wait(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent) {
+	void FrameBuffer::wait() {
 		if (implementation->fence->GetCompletedValue() < implementation->fenceValue) {
-			
+			const auto fenceEvent = queue::getFenceEvent();
+
 			debug::verify::com(implementation->fence->SetEventOnCompletion(implementation->fenceValue, fenceEvent));
 			debug::verify::com(WaitForSingleObject(fenceEvent, INFINITE));
 		}
 	}
 
-	void FrameBuffer::begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView) {
+	void FrameBuffer::begin(D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView) {
+		const auto commandList = queue::getCommandList();
 		const float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-		
+
 		debug::verify::com(implementation->commandAllocator->Reset());
 		debug::verify::com(commandList->Reset(implementation->commandAllocator.Get(), nullptr));
 		
@@ -72,17 +75,19 @@ namespace tracer {
 		return implementation->constantBuffer;
 	}
 	
-	void FrameBuffer::end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, DXGI_FORMAT renderTargetFormat) {
+	void FrameBuffer::end() {
+		const auto commandList = queue::getCommandList();
+
 		commandList->ResourceBarrier(static_cast<uint32_t>(implementation->resolveBarriers.size()), implementation->resolveBarriers.data());
-		commandList->ResolveSubresource(implementation->resolveBuffer.Get(), 0, implementation->renderTargetBuffer.Get(), 0, renderTargetFormat);
+		commandList->ResolveSubresource(implementation->resolveBuffer.Get(), 0, implementation->renderTargetBuffer.Get(), 0, swapChain::getRenderTargetFormat());
 		commandList->ResourceBarrier(1, &implementation->presentBarrier);
 
 		debug::verify::com(commandList->Close());
 	}
 
-	void FrameBuffer::signal(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue) {
+	void FrameBuffer::signal() {
 		implementation->fenceValue++;
-		debug::verify::com(commandQueue->Signal(implementation->fence.Get(), implementation->fenceValue));
+		debug::verify::com(queue::getCommandQueue()->Signal(implementation->fence.Get(), implementation->fenceValue));
 	}
 	
 	FrameBuffer::~FrameBuffer() = default;

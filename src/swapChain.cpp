@@ -219,8 +219,8 @@ namespace tracer::swapChain {
 		const auto commandList = queue::getCommandList();
 		const auto fenceEvent = queue::getFenceEvent();
 
-		frameBuffer.wait(commandList, fenceEvent);
-		frameBuffer.begin(commandList, depthStencilView);
+		frameBuffer.wait();
+		frameBuffer.begin(depthStencilView);
 
 		commandList->RSSetViewports(1, &viewport);
 		commandList->RSSetScissorRects(1, &scissor);
@@ -231,11 +231,11 @@ namespace tracer::swapChain {
 	}
 
 	void end() {
-		frameBuffers.at(imageIndex).end(queue::getCommandList(), renderTargetFormat);
+		frameBuffers.at(imageIndex).end();
 	}
 
 	void present() {
-		frameBuffers.at(imageIndex).signal(queue::getCommandQueue());
+		frameBuffers.at(imageIndex).signal();
 
 		DXGI_PRESENT_PARAMETERS presentParameters = {};
 		debug::verify::com(swapChain->Present1(0, 0, &presentParameters));
@@ -249,10 +249,10 @@ namespace tracer::swapChain {
 		const auto fenceEvent = queue::getFenceEvent();
 
 		for (auto& image : frameBuffers) {
-			image.signal(commandQueue);
+			image.signal();
 		}
 		for (auto& image : frameBuffers) {
-			image.wait(commandList, fenceEvent);
+			image.wait();
 		}
 	}
 }

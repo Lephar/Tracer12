@@ -20,11 +20,11 @@ namespace tracer {
 
 		void setResources(Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer, Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer, D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView);
 		
-		void wait(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, HANDLE fenceEvent);
-		void begin(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
+		void wait();
+		void begin(D3D12_CPU_DESCRIPTOR_HANDLE& depthStencilView);
 		Microsoft::WRL::ComPtr<ID3D12Resource2> getConstantBuffer();
-		void end(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList10> commandList, DXGI_FORMAT renderTargetFormat);
-		void signal(Microsoft::WRL::ComPtr<ID3D12CommandQueue1> commandQueue);
+		void end();
+		void signal();
 		
 		~FrameBuffer();
 	};
