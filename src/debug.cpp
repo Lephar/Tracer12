@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "debug.h"
 
 namespace tracer::debug {

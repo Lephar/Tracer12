@@ -1,5 +1,4 @@
 #include "pch.h"
-
 #include "numerics.h"
 
 namespace tracer {

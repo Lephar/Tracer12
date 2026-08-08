@@ -1,7 +1,5 @@
 #include "pch.h"
-
 #include "system.h"
-
 #include "debug.h"
 
 namespace tracer::system {

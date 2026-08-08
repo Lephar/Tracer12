@@ -1,7 +1,5 @@
 #include "pch.h"
-
 #include "infrastructure.h"
-
 #include "debug.h"
 
 extern "C" {
