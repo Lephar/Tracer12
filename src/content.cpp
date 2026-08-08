@@ -63,6 +63,9 @@ namespace tracer::content {
 		DirectX::SimpleMath::Vector3 position = {};
 		DirectX::SimpleMath::Vector3 forward = {};
 		DirectX::SimpleMath::Vector3 up = {};
+
+		float turnSpeed = 0.0f;
+		float moveSpeed = 0.0f;
 	}
 
 	void load() {
@@ -103,6 +106,9 @@ namespace tracer::content {
 		position = DirectX::SimpleMath::Vector3::Zero;
 		forward = DirectX::SimpleMath::Vector3::UnitZ;
 		up = DirectX::SimpleMath::Vector3::UnitY;
+
+		turnSpeed = 1.0f;
+		moveSpeed = 4.0f;
 
 		debug::decrementDepth();
 	}
@@ -223,8 +229,8 @@ namespace tracer::content {
 		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 
-		auto indicesSize = static_cast<uint32_t>(indices.size() * sizeof(Primitive::Index));
-		auto verticesSize = static_cast<uint32_t>(vertices.size() * sizeof(Primitive::Vertex));
+		const auto indicesSize = indices.size() * sizeof(Primitive::Index);
+		const auto verticesSize = vertices.size() * sizeof(Primitive::Vertex);
 
 		const auto indexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(indicesSize);
 		const auto vertexBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(verticesSize);
@@ -243,7 +249,7 @@ namespace tracer::content {
 
 		indexBufferView = {
 			.BufferLocation = indexBuffer->GetGPUVirtualAddress(),
-			.SizeInBytes = indicesSize,
+			.SizeInBytes = static_cast<uint32_t>(indicesSize),
 			.Format = DXGI_FORMAT_R32_UINT,
 		};
 
@@ -251,7 +257,7 @@ namespace tracer::content {
 
 		vertexBufferView = {
 			.BufferLocation = vertexBuffer->GetGPUVirtualAddress(),
-			.SizeInBytes = verticesSize,
+			.SizeInBytes = static_cast<uint32_t>(verticesSize),
 			.StrideInBytes = sizeof(Primitive::Vertex),
 		};
 
@@ -337,9 +343,6 @@ namespace tracer::content {
 	}
 	
 	void update() {
-		const auto turnSpeed = 1.0f;
-		const auto moveSpeed = 4.0f;
-
 		const auto mouseMovement = turnSpeed * system::getMouseMovement();
 		const auto keyboardMovement = moveSpeed * system::getKeyboardMovement();
 

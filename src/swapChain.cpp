@@ -6,6 +6,7 @@
 #include "device.h"
 #include "queue.h"
 #include "content.h"
+#include "numerics.h"
 #include "debug.h"
 
 namespace tracer::swapChain {
@@ -25,6 +26,10 @@ namespace tracer::swapChain {
 		std::unique_ptr<DirectX::DescriptorHeap> renderTargetDescriptorHeap = nullptr;
 
 		Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
+
+		Microsoft::WRL::ComPtr<ID3D12Heap1> textureHeap = nullptr;
+		Microsoft::WRL::ComPtr<ID3D12Heap1> bufferHeap = nullptr;
+
 		Microsoft::WRL::ComPtr<ID3D12Resource2> depthStencilBuffer = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = {};
 
@@ -138,14 +143,31 @@ namespace tracer::swapChain {
 		const auto width = system::getWidth();
 		const auto height = system::getHeight();
 		const auto device = device::getDevice();
-		const auto constantBufferSize = content::getConstantBufferSize();
 
-		const auto defaultHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-		const auto uploadHeapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		std::vector<D3D12_RESOURCE_DESC1> bufferResourceDescs{ imageCount, CD3DX12_RESOURCE_DESC1::Buffer(content::getConstantBufferSize()) };
+		std::vector<D3D12_RESOURCE_DESC1> textureResourceDescs{ imageCount, CD3DX12_RESOURCE_DESC1::Tex2D(renderTargetFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) };
+		textureResourceDescs.push_back(CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL));
 
-		const auto depthStencilResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(depthStencilFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-		const auto renderTargetResourceDesc = CD3DX12_RESOURCE_DESC1::Tex2D(renderTargetFormat, width, height, 1, 1, sampleCount, DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-		const auto constantBufferResourceDesc = CD3DX12_RESOURCE_DESC1::Buffer(constantBufferSize);
+		std::vector<D3D12_RESOURCE_ALLOCATION_INFO1> bufferResourceAllocationInfos{ bufferResourceDescs.size() };
+		std::vector<D3D12_RESOURCE_ALLOCATION_INFO1> textureResourceAllocationInfos{ textureResourceDescs.size() };
+
+		device->GetResourceAllocationInfo3(1, static_cast<uint32_t>(bufferResourceDescs.size()), bufferResourceDescs.data(), 0, nullptr, bufferResourceAllocationInfos.data());
+		device->GetResourceAllocationInfo3(1, static_cast<uint32_t>(textureResourceDescs.size()), textureResourceDescs.data(), 0, nullptr, textureResourceAllocationInfos.data());
+
+		const auto& bufferAllocation = bufferResourceAllocationInfos.back();
+		const auto& depthStencilAllocation = textureResourceAllocationInfos.back();
+
+		const auto bufferSize = bufferAllocation.Offset + align(bufferAllocation.SizeInBytes, bufferAllocation.Alignment);
+		const auto textureSize = depthStencilAllocation.Offset + align(depthStencilAllocation.SizeInBytes, depthStencilAllocation.Alignment);
+
+		CD3DX12_HEAP_DESC bufferHeapDesc(bufferSize, D3D12_HEAP_TYPE_UPLOAD, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+		CD3DX12_HEAP_DESC textureHeapDesc(textureSize, D3D12_HEAP_TYPE_DEFAULT, D3D12_DEFAULT_MSAA_RESOURCE_PLACEMENT_ALIGNMENT, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+
+		debug::verify::com(device->CreateHeap1(&bufferHeapDesc, nullptr, IID_PPV_ARGS(bufferHeap.GetAddressOf())));
+		debug::print("Swap chain buffer resource heap created with size %lu", bufferSize);
+
+		debug::verify::com(device->CreateHeap1(&textureHeapDesc, nullptr, IID_PPV_ARGS(textureHeap.GetAddressOf())));
+		debug::print("Swap chain texture resource heap created with size %lu", textureSize);
 
 		D3D12_CLEAR_VALUE depthStencilClearValue = {
 			.Format = depthStencilFormat,
@@ -165,8 +187,8 @@ namespace tracer::swapChain {
 			},
 		};
 
-		debug::verify::com(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &depthStencilResourceDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, nullptr, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
-		debug::print("Depth stencil buffer created on default heap");
+		debug::verify::com(device->CreatePlacedResource1(textureHeap.Get(), depthStencilAllocation.Offset, &textureResourceDescs.back(), D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthStencilClearValue, IID_PPV_ARGS(depthStencilBuffer.GetAddressOf())));
+		debug::print("Depth stencil buffer created on swap chain texture resource heap with offset of %lu", depthStencilAllocation.Offset);
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {
 			.Format = depthStencilFormat,
@@ -190,16 +212,18 @@ namespace tracer::swapChain {
 			auto& frameBuffer = frameBuffers.at(imageIndex);
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> renderTargetBuffer;
-			debug::verify::com(device->CreateCommittedResource2(&defaultHeapProperties, D3D12_HEAP_FLAG_NONE, &renderTargetResourceDesc, D3D12_RESOURCE_STATE_RESOLVE_SOURCE, &renderTargetClearValue, nullptr, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
-			debug::print("Render target buffer created on default heap");
+			const auto& renderTargetAllocation = textureResourceAllocationInfos.at(imageIndex);
+			debug::verify::com(device->CreatePlacedResource1(textureHeap.Get(), renderTargetAllocation.Offset, &textureResourceDescs.at(imageIndex), D3D12_RESOURCE_STATE_RESOLVE_SOURCE, &renderTargetClearValue, IID_PPV_ARGS(renderTargetBuffer.GetAddressOf())));
+			debug::print("Render target buffer created on swap chain texture resource heap with offset of %lu", renderTargetAllocation.Offset);
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> resolveBuffer;
 			debug::verify::com(swapChain->GetBuffer(imageIndex, IID_PPV_ARGS(resolveBuffer.GetAddressOf())));
 			debug::print("Swap chain buffer acquired");
 
 			Microsoft::WRL::ComPtr<ID3D12Resource2> constantBuffer;
-			debug::verify::com(device->CreateCommittedResource2(&uploadHeapProperties, D3D12_HEAP_FLAG_NONE, &constantBufferResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
-			debug::print("Constant buffer created on upload heap");
+			const auto& constantBufferAllocation = bufferResourceAllocationInfos.at(imageIndex);
+			debug::verify::com(device->CreatePlacedResource1(bufferHeap.Get(), constantBufferAllocation.Offset, &bufferResourceDescs.at(imageIndex), D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(constantBuffer.GetAddressOf())));
+			debug::print("Constant buffer created on swap chain buffer resource heap with offset of %lu", constantBufferAllocation.Offset);
 
 			auto renderTargetView = renderTargetDescriptorHeap->GetCpuHandle(imageIndex);
 			device->CreateRenderTargetView(renderTargetBuffer.Get(), &renderTargetViewDesc, renderTargetView);

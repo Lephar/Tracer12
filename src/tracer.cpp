@@ -1,14 +1,15 @@
 #include "pch.h"
 #include "tracer.h"
 #include "system.h"
-#include "content.h"
 #include "compiler.h"
 #include "infrastructure.h"
 #include "device.h"
 #include "queue.h"
 #include "swapchain.h"
+#include "memory.h"
 #include "rootSignature.h"
 #include "pipeline.h"
+#include "content.h"
 
 namespace tracer {
 	namespace {
@@ -22,8 +23,9 @@ namespace tracer {
 
 			content::load();
 
+			//memory::allocate();
 			rootSignature::create();
-			pipeline::create();
+			pipeline::build();
 
 			swapChain::createResources();
 			content::createResources();

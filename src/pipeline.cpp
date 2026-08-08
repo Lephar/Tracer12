@@ -11,7 +11,7 @@ namespace tracer::pipeline {
 		std::map<std::pair<bool, bool>, Microsoft::WRL::ComPtr<ID3D12PipelineState>> pipelineStates;
 	}
 	
-	void create() {
+	void build() {
 		debug::print("Creating pipelines:");
 		debug::incrementDepth();
 
